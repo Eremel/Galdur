@@ -281,7 +281,6 @@ function generate_stake_card_areas_ui()
     for i=1, 3 do
         local row = {n = G.UIT.R, config = {colour = G.C.LIGHT, padding = 0.1}, nodes = {}}
         for j=1, 8 do
-            if count > #G.P_CENTER_POOLS.Stake then return end
             table.insert(row.nodes, {n = G.UIT.O, config = {object = Galdur.run_setup.stake_select_areas[count], r = 0.1, id = "stake_select_"..count, outline_colour = G.C.YELLOW}})
             count = count + 1
         end
@@ -361,7 +360,7 @@ end
 function create_stake_page_cycle()
     local options = {}
     local cycle
-    if #G.P_CENTER_POOLS.Stake > 24 then
+    
         local total_pages = math.ceil(#G.P_CENTER_POOLS.Stake / 24)
         for i=1, total_pages do
             table.insert(options, localize('k_page')..' '..i..' / '..total_pages)
@@ -376,7 +375,7 @@ function create_stake_page_cycle()
             colour = G.C.RED,
             no_pips = true
         })
-    end
+    
     return {n = G.UIT.R, config = {align = "cm"}, nodes = {cycle}}
 end
 
