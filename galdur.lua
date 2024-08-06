@@ -124,6 +124,7 @@ function Card:click()
         text.UIBox:recalculate()
     elseif self.params.stake_chip and not self.params.stake_chip_locked then
         Galdur.run_setup.choices.stake = self.params.stake
+        G.E_MANAGER:clear_queue()
         populate_chip_tower(self.params.stake)
     else
         card_click_ref(self)
@@ -155,6 +156,15 @@ function CardArea:align_cards()
         card_area_align_ref(self)
     end
 end
+
+local exit_overlay = G.FUNCS.exit_overlay_menu
+G.FUNCS.exit_overlay_menu = function()
+    for _, clean_up in pairs(Galdur.clean_up_functions) do
+        clean_up()
+    end
+    G.E_MANAGER:clear_queue()
+    exit_overlay()
+  end
 
 -- Deck Selection Functions
 function generate_deck_card_areas()
