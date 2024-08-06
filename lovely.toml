@@ -45,7 +45,7 @@ pattern = '''
 position = 'at'
 line_prepend = "$indent"
 payload = '''
-tab_definition_function = (Galdur.use and G.UIDEF.run_setup_option_new_model or G.UIDEF.run_setup_option),
+tab_definition_function = (Galdur.config.use and G.UIDEF.run_setup_option_new_model or G.UIDEF.run_setup_option),
 tab_definition_function_args = 'New Run'
 
 '''
