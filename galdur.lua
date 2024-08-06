@@ -202,7 +202,7 @@ function populate_deck_card_areas(page)
                 {viewed_back = Back(G.P_CENTER_POOLS.Back[count]), deck_select = true})
             card.sprite_facing = 'back'
             card.facing = 'back'
-            card.children.back = Sprite(card.T.x, card.T.y, card.T.w, card.T.h, G.ASSET_ATLAS[G.P_CENTER_POOLS.Back[count].atlas], G.P_CENTER_POOLS.Back[count].unlocked and G.P_CENTER_POOLS.Back[count].pos or {x = 4, y = 0})
+            card.children.back = Sprite(card.T.x, card.T.y, card.T.w, card.T.h, G.ASSET_ATLAS[G.P_CENTER_POOLS.Back[count].atlas or 'centers'], G.P_CENTER_POOLS.Back[count].unlocked and G.P_CENTER_POOLS.Back[count].pos or {x = 4, y = 0})
             card.children.back.states.hover = card.states.hover
             card.children.back.states.click = card.states.click
             card.children.back.states.drag = card.states.drag
@@ -318,7 +318,6 @@ end
 
 function populate_stake_card_areas(page)
     local count = 1 + (page - 1) * 24
-    spit(tostring(G.PROFILES[G.SETTINGS.profile].all_unlocked))
     for i=1, 24 do
         if count > #G.P_CENTER_POOLS.Stake then return end
         local card = Card(Galdur.run_setup.stake_select_areas[i].T.x,Galdur.run_setup.stake_select_areas[i].T.y, 3.4*14/41, 3.4*14/41,
@@ -389,7 +388,6 @@ end
 -- Main Select Functions
 function G.UIDEF.run_setup_option_new_model(type)
     if not G.PROFILES[G.SETTINGS.profile].Galdur_wins then initial_conversion() end
-    spit(tprint(Galdur.config))
 
     if not G.SAVED_GAME then
         G.SAVED_GAME = get_compressed(G.SETTINGS.profile..'/'..'save.jkr')
@@ -596,7 +594,7 @@ function populate_deck_preview(_deck, silent)
             _deck.effect.center, _deck.effect.center, {viewed_back = _deck, deck_select = true})
         card.sprite_facing = 'back'
         card.facing = 'back'
-        card.children.back = Sprite(card.T.x, card.T.y, card.T.w, card.T.h, G.ASSET_ATLAS[_deck.effect.center.atlas], _deck.effect.center.pos)
+        card.children.back = Sprite(card.T.x, card.T.y, card.T.w, card.T.h, G.ASSET_ATLAS[_deck.effect.center.atlas or 'centers'], _deck.effect.center.pos)
         card.children.back.states.hover = card.states.hover
         card.children.back.states.click = card.states.click
         card.children.back.states.drag = card.states.drag
@@ -861,6 +859,47 @@ function G.FUNCS.toggle_button(e)
     ref.ref_table[ref.ref_value] = not ref.ref_table[ref.ref_value]
     if e.config.toggle_callback then 
       e.config.toggle_callback(ref.ref_table[ref.ref_value], e) -- pass the node it's from too
+    end
+end
+
+-- Stake injection changes - TODO: import into steamodded main with other stake changes
+SMODS.Stake.inject = function(self)
+    if not self.injected then
+        -- Inject stake in the correct spot
+        self.count = #G.P_CENTER_POOLS[self.set] + 1
+        self.order = self.count
+        if self.above_stake then
+            self.order = G.P_STAKES[self.class_prefix .. "_" .. self.above_stake].stake_level + 1
+        end
+        self.stake_level = self.order
+        for _, v in pairs(G.P_STAKES) do
+            if v.stake_level >= self.stake_level then
+                v.stake_level = v.stake_level + 1
+                v.order = v.stake_level
+            end
+        end
+        G.P_STAKES[self.key] = self
+        -- Sticker sprites (stake_ prefix is removed for vanilla compatiblity)
+        if self.sticker_pos ~= nil then
+            G.shared_stickers[self.key:sub(7)] = Sprite(0, 0, G.CARD_W, G.CARD_H,
+                G.ASSET_ATLAS[self.sticker_atlas] or G.ASSET_ATLAS["stickers"], self.sticker_pos)
+            G.sticker_map[self.key] = self.key:sub(7)
+        else
+            G.sticker_map[self.key] = nil
+        end
+    else
+        G.P_STAKES[self.key] = self
+    end
+    self.injected = true
+    -- should only need to do this once per injection routine
+    G.P_CENTER_POOLS[self.set] = {}
+    for _, v in pairs(G.P_STAKES) do
+        SMODS.insert_pool(G.P_CENTER_POOLS[self.set], v)
+    end
+    table.sort(G.P_CENTER_POOLS[self.set], function(a, b) return a.stake_level < b.stake_level end)
+    G.C.STAKES = {}
+    for i = 1, #G.P_CENTER_POOLS[self.set] do
+        G.C.STAKES[i] = G.P_CENTER_POOLS[self.set][i].colour or G.C.WHITE
     end
 end
 
