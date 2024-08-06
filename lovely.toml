@@ -3,28 +3,7 @@ version = "1.0.0"
 dump_lua = true
 priority = 1
 
-
-# [[patches]]
-# [patches.pattern]
-# target = 'cardarea.lua'
-# pattern = '''self.ARGS.invisible_area_types = self.ARGS.invisible_area_types or {discard=1, voucher=1, play=1, consumeable=1, title = 1, title_2 = 1}'''
-# position = 'after'
-# match_indent = true
-# payload = '''
-#     if self.config.stake_chips then
-#         sendDebugMessage("CHIPS!")
-#         local deck_height = (self.config.deck_height or 0.15)/52
-#         for k, card in ipairs(self.cards) do
-#             if card.facing == 'front' then card:flip() end
-
-#             if not card.states.drag.is then
-#                 card.T.x = self.T.x + 0.5*(self.T.w - card.T.w) + self.shadow_parrallax.x*deck_height*(#self.cards/(self == G.deck and 1 or 2) - k) 
-#                 card.T.y = self.T.y + 0.5*(self.T.h - card.T.h) + self.shadow_parrallax.y*deck_height*(#self.cards/(self == G.deck and 1 or 2) - k) + 0.9*self.shuffle_amt*(1 - k*0.01)*(k%2 == 1 and 1 or -0)
-#             end
-#         end
-#     end'''
-
-# Stops fading of chips in tower
+# Colour stake chips in stake selector and stake chip tower
 # Card:draw()
 [[patches]]
 [patches.pattern]
@@ -42,7 +21,7 @@ else
     self.children.back:draw(overlay)
 end'''
 
-# Allows hovering of mid stack chips
+# Allows hovering of chips in stake chip tower
 # Controller:update()
 [[patches]]
 [patches.pattern]
@@ -55,6 +34,8 @@ if self.hovering.prev_target and self.hovering.prev_target.role and self.hoverin
 if self.hovering.target and self.hovering.target.role and self.hovering.target.role.major and self.hovering.target.role.major.params and self.hovering.target.role.major.params.stake_chip and self.hovering.target ~= self.hovering.prev_target then self.hovering.target.role.major:hover() end
 '''
 
+# Use Galdur run setup page on toggle
+# G.UIDEF.run_setup()
 [[patches]]
 [patches.regex]
 target = 'functions/UI_definitions.lua'
@@ -69,6 +50,8 @@ tab_definition_function_args = 'New Run'
 
 '''
 
+# Allow Galdur deck to be used
+# Game:start_run()
 [[patches]]
 [patches.pattern]
 target = 'game.lua'
@@ -79,6 +62,8 @@ payload = '''
 local selected_back = saveTable and saveTable.BACK.name or (args.challenge and args.challenge.deck and args.challenge.deck.type) or (args.deck and args.deck.name) or (self.GAME.viewed_back and self.GAME.viewed_back.name) or self.GAME.selected_back and self.GAME.selected_back.name or 'Red Deck'
 '''
 
+# Remove delay
+# Back:apply_to_run()
 [[patches]]
 [patches.pattern]
 target = 'back.lua'
@@ -89,6 +74,8 @@ payload = '''
 if not G.jokers then delay(0.4) end
 '''
 
+# Modify deck win save
+# set_deck_win()
 [[patches]]
 [patches.pattern]
 target = 'functions/misc_functions.lua'
@@ -99,6 +86,7 @@ payload = '''
 '''
 
 # Cryptid compat
+# Card:draw()
 [[patches]]
 [patches.pattern]
 target = 'card.lua'
