@@ -1,5 +1,5 @@
 --- STEAMODDED HEADER
---- MOD_NAME: Galdur - Deck Viewer
+--- MOD_NAME: Galdur
 --- MOD_ID: galdur
 --- PREFIX: galdur
 --- MOD_AUTHOR: [Eremel_]
