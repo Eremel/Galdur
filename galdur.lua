@@ -110,6 +110,7 @@ function Card:click()
         Galdur.run_setup.selected_deck_from = self.area.config.index
         Galdur.run_setup.choices.deck = Back(self.config.center)
         Galdur.run_setup.choices.stake = get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key)+1
+        G.E_MANAGER:clear_queue()
         populate_deck_preview(Galdur.run_setup.choices.deck)
 
         local texts = split_string_2(Galdur.run_setup.choices.deck.loc_name)
