@@ -2,7 +2,21 @@ return {
 	["misc"] = {
 		["dictionary"] = {
 			["gald_master"] = "Enable Galdur",
+            ["gald_use_desc"] = {
+                "Toggle the use of the",
+                "Galdur setup"    
+            },
             ["gald_anim"] = "Enable animations",
+            ["gald_anim_desc"] = {
+                "This option enables the",
+                "animations of the deck",
+                "preview and chip tower"    
+            },
+            ["gald_reduce"] = "Reduce deck size",
+            ["gald_reduce_desc"] = {
+                "This option reduces the",
+                "number of cards on the screen"    
+            },
             ["gald_select_deck"] = "Select Deck",
             ["gald_select_stake"] = "Select Stake",
             ["gald_play"] = "Play",

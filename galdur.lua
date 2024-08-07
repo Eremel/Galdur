@@ -210,7 +210,7 @@ function populate_deck_card_areas(page)
     local count = 1 + (page - 1) * 12
     for i=1, 12 do
         if count > #G.P_CENTER_POOLS.Back then return end
-        local card_number = 10
+        local card_number = Galdur.config.reduce and 1 or 10
         for index = 1, card_number do
             local card = Card(Galdur.run_setup.deck_select_areas[i].T.x,Galdur.run_setup.deck_select_areas[i].T.y, G.CARD_W, G.CARD_H, G.P_CENTER_POOLS.Back[count], G.P_CENTER_POOLS.Back[count],
                 {viewed_back = Back(G.P_CENTER_POOLS.Back[count]), deck_select = true})
@@ -547,12 +547,15 @@ table.insert(Galdur.run_setup.pages, {definition = deck_select_page_stake, name 
 
 SMODS.current_mod.config_tab = function()
     return {n = G.UIT.ROOT, config = {r = 0.1, minw = 5, align = "tm", padding = 0.2, colour = G.C.BLACK}, nodes = {
-        {n = G.UIT.R, config = { align = "cm", padding = 0.01 }, nodes = {
+        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_use_desc')} }, nodes = {
                 create_toggle({label = localize('gald_master'), ref_table = Galdur.config, ref_value = 'use'})
         }},
-        {n = G.UIT.R, config = { align = "cm", padding = 0.01 }, nodes = {
+        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_anim_desc')} }, nodes = {
             create_toggle({label = localize('gald_anim'), ref_table = Galdur.config, ref_value = 'animation'})
-        }}   
+        }},
+        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_reduce_desc')} }, nodes = {
+            create_toggle({label = localize('gald_reduce'), ref_table = Galdur.config, ref_value = 'reduce'})
+    }}, 
     }}
 end
 
@@ -600,10 +603,8 @@ end
 function populate_deck_preview(_deck, silent)
     if Galdur.run_setup.selected_deck_area.cards then remove_all(Galdur.run_setup.selected_deck_area.cards); Galdur.run_setup.selected_deck_area.cards = {} end
     if not _deck then _deck = Back(G.P_CENTERS['b_red']) end
-    G.GAME.modifiers = {}
-    G.GAME.starting_params = get_starting_params()
-    _deck:apply_to_run()
-    Galdur.run_setup.selected_deck_height = calculate_deck_size()
+
+    Galdur.run_setup.selected_deck_height = Galdur.config.reduce and 1 or _deck.effect.center.galdur_height or 52
     for index = 1, Galdur.run_setup.selected_deck_height do
         local card = Card(Galdur.run_setup.selected_deck_area.T.x+2*G.CARD_W, -2*G.CARD_H, G.CARD_W, G.CARD_H,
             _deck.effect.center, _deck.effect.center, {viewed_back = _deck, deck_select = true})
