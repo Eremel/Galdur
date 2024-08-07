@@ -223,7 +223,7 @@ function populate_deck_card_areas(page)
         local card_number = Galdur.config.reduce and 1 or 10
         for index = 1, card_number do
             local card = Card(Galdur.run_setup.deck_select_areas[i].T.x,Galdur.run_setup.deck_select_areas[i].T.y, G.CARD_W, G.CARD_H, G.P_CENTER_POOLS.Back[count], G.P_CENTER_POOLS.Back[count],
-                {viewed_back = Back(G.P_CENTER_POOLS.Back[count]), deck_select = true})
+                {galdur_back = Back(G.P_CENTER_POOLS.Back[count]), deck_select = true})
             card.sprite_facing = 'back'
             card.facing = 'back'
             card.children.back = Sprite(card.T.x, card.T.y, card.T.w, card.T.h, G.ASSET_ATLAS[G.P_CENTER_POOLS.Back[count].atlas or 'centers'], G.P_CENTER_POOLS.Back[count].unlocked and G.P_CENTER_POOLS.Back[count].pos or {x = 4, y = 0})
@@ -603,17 +603,24 @@ function generate_deck_preview()
 
     Galdur.run_setup.selected_deck_area = CardArea(15.475, 0, G.CARD_W, G.CARD_H, 
     {card_limit = 52, type = 'deck', highlight_limit = 0, deck_height = 0.15, thin_draw = 1, selected_deck = true})
+    Galdur.run_setup.selected_deck_area_holding = CardArea(Galdur.run_setup.selected_deck_area.T.x+2*G.CARD_W, -2*G.CARD_H, G.CARD_W, G.CARD_H, 
+    {card_limit = 52, type = 'deck', highlight_limit = 0, deck_height = 0.15, thin_draw = 1, selected_deck = true})
    
 end
 
 function populate_deck_preview(_deck, silent)
-    if Galdur.run_setup.selected_deck_area.cards then remove_all(Galdur.run_setup.selected_deck_area.cards); Galdur.run_setup.selected_deck_area.cards = {} end
+    if Galdur.run_setup.selected_deck_area.cards then
+        remove_all(Galdur.run_setup.selected_deck_area.cards)
+        Galdur.run_setup.selected_deck_area.cards = {}
+        remove_all(Galdur.run_setup.selected_deck_area_holding.cards)
+        Galdur.run_setup.selected_deck_area_holding.cards = {} end
     if not _deck then _deck = Back(G.P_CENTERS['b_red']) end
 
     Galdur.run_setup.selected_deck_height = Galdur.config.reduce and 1 or _deck.effect.center.galdur_height or 52
     for index = 1, Galdur.run_setup.selected_deck_height do
         local card = Card(Galdur.run_setup.selected_deck_area.T.x+2*G.CARD_W, -2*G.CARD_H, G.CARD_W, G.CARD_H,
-            _deck.effect.center, _deck.effect.center, {viewed_back = _deck, deck_select = true})
+            _deck.effect.center, _deck.effect.center, {galdur_back = _deck, deck_select = true})
+        Galdur.run_setup.selected_deck_area_holding:emplace(card)
         card.sprite_facing = 'back'
         card.facing = 'back'
         card.children.back = Sprite(card.T.x, card.T.y, card.T.w, card.T.h, G.ASSET_ATLAS[_deck.effect.center.atlas or 'centers'], _deck.effect.center.pos)
@@ -628,13 +635,17 @@ function populate_deck_preview(_deck, silent)
             card.deck_select_position = true
         end
         if silent or not Galdur.config.animation or index < Galdur.run_setup.selected_deck_height/2 then
-            Galdur.run_setup.selected_deck_area:emplace(card)
+            -- Galdur.run_setup.selected_deck_area_holding:remove_card(card)
+            Galdur.run_setup.selected_deck_area:draw_card_from(Galdur.run_setup.selected_deck_area_holding)
+            -- Galdur.run_setup.selected_deck_area:emplace(card)
         else
             G.E_MANAGER:add_event(Event({
                 trigger = 'immediate',
                 func = (function()
                     play_sound('card1', math.random()*0.2 + 0.9, 0.35)
-                    Galdur.run_setup.selected_deck_area:emplace(card)
+                    -- Galdur.run_setup.selected_deck_area_holding:remove_card(card)
+                    Galdur.run_setup.selected_deck_area:draw_card_from(Galdur.run_setup.selected_deck_area_holding)
+                    -- Galdur.run_setup.selected_deck_area:emplace(card)
                     return true
                 end)
             }), 'galdur')
@@ -654,16 +665,24 @@ function generate_chip_tower()
     end
     Galdur.run_setup.chip_tower = CardArea(G.ROOM.T.w * 0.656, G.ROOM.T.y, 3.4*14/41, 3.4*14/41, 
         {type = 'deck', highlight_limit = 0, draw_layers = {'card'}, thin_draw = 1, stake_chips = true})
+    Galdur.run_setup.chip_tower_holding = CardArea(G.ROOM.T.w * 0.656, G.ROOM.T.y, 3.4*14/41, 3.4*14/41, 
+        {type = 'deck', highlight_limit = 0, draw_layers = {'card'}, thin_draw = 1, stake_chips = true})
 end
 
 function populate_chip_tower(_stake)
-    if Galdur.run_setup.chip_tower.cards then remove_all(Galdur.run_setup.chip_tower.cards); Galdur.run_setup.chip_tower.cards = {} end
+    if Galdur.run_setup.chip_tower.cards then
+        remove_all(Galdur.run_setup.chip_tower.cards)
+        Galdur.run_setup.chip_tower.cards = {}
+        remove_all(Galdur.run_setup.chip_tower_holding.cards)
+        Galdur.run_setup.chip_tower_holding.cards = {}
+    end
     if _stake == 0 then _stake = 1 end
     local applied_stakes = order_stake_chain(build_stake_chain(_stake), _stake)
     for index, stake_index in ipairs(applied_stakes) do
         local card = Card(Galdur.run_setup.chip_tower.T.x, G.ROOM.T.y, 3.4*14/41, 3.4*14/41,
             Galdur.run_setup.choices.deck.effect.center, Galdur.run_setup.choices.deck.effect.center,
             {hover = #applied_stakes - index, stake = stake_index, stake_chip = true})
+        Galdur.run_setup.chip_tower_holding:emplace(card)
         card.facing = 'back'
         card.sprite_facing = 'back'
         card.children.back = get_stake_sprite_in_area(stake_index, 3.4*14/41, Galdur.run_setup.chip_tower)
@@ -679,12 +698,12 @@ function populate_chip_tower(_stake)
                 delay = 0.02,
                 func = (function()
                     play_sound('chips2', math.random()*0.2 + 0.9, 0.35)
-                    Galdur.run_setup.chip_tower:emplace(card)
+                    Galdur.run_setup.chip_tower:draw_card_from(Galdur.run_setup.chip_tower_holding)
                     return true
                 end)
             }), 'galdur')
         else
-            Galdur.run_setup.chip_tower:emplace(card)
+            Galdur.run_setup.chip_tower:draw_card_from(Galdur.run_setup.chip_tower_holding)
         end
     end
 end
