@@ -110,7 +110,7 @@ function Card:click()
     if self.deck_select_position and self.config.center.unlocked then
         Galdur.run_setup.selected_deck_from = self.area.config.index
         Galdur.run_setup.choices.deck = Back(self.config.center)
-        Galdur.run_setup.choices.stake = get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key)+1
+        Galdur.run_setup.choices.stake = get_deck_win_galdur(Galdur.run_setup.choices.deck.effect.center, true)+1
         G.E_MANAGER:clear_queue('galdur')
         populate_deck_preview(Galdur.run_setup.choices.deck)
 
@@ -236,7 +236,7 @@ function populate_deck_card_areas(page)
             Galdur.run_setup.deck_select_areas[i]:emplace(card)
             if index == card_number then
                 G.sticker_card = card
-                card.sticker = get_deck_win_sticker_galdur(G.P_CENTER_POOLS.Back[count])
+                card.sticker = get_deck_win_galdur(G.P_CENTER_POOLS.Back[count])
                 card.deck_select_position = {page = page, count = i}
             end
         end
@@ -357,13 +357,13 @@ function populate_stake_card_areas(page)
                 unlocked = false
             end
         end
+        if save_data and save_data[G.P_CENTER_POOLS.Stake[count].key] then
+            card.children.back.won = true
+            unlocked = true
+        end
         if not unlocked then
             card.params.stake_chip_locked = true
             card.children.back = Sprite(card.T.x, card.T.y, 3.4*14/41, 3.4*14/41,G.ASSET_ATLAS['galdur_locked_stake'], {x=0,y=0})
-            
-        end
-        if save_data and save_data[G.P_CENTER_POOLS.Stake[count].key] then
-            card.children.back.won = true
         end
         card.children.back.states.hover = card.states.hover
         card.children.back.states.click = card.states.click
@@ -528,7 +528,7 @@ end
 function deck_select_page_stake()
     generate_stake_card_areas()
     generate_chip_tower()
-    populate_chip_tower(math.min(get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key)+1, #G.P_CENTER_POOLS.Stake))
+    populate_chip_tower(math.min(get_deck_win_galdur(Galdur.run_setup.choices.deck.effect.center, true)+1, #G.P_CENTER_POOLS.Stake))
 
     generate_deck_preview()
     populate_deck_preview(Galdur.run_setup.choices.deck, true)
@@ -803,7 +803,7 @@ function get_joker_win_sticker(_center, index)
     if index then return 0 end
 end
 
-function get_deck_win_sticker_galdur(_center)
+function get_deck_win_galdur(_center, raw)
     if G.PROFILES[G.SETTINGS.profile].Galdur_wins[_center.key] then 
         local _w = nil
         for key, v in pairs(G.PROFILES[G.SETTINGS.profile].Galdur_wins[_center.key]) do
@@ -812,7 +812,7 @@ function get_deck_win_sticker_galdur(_center)
             end
         end
         if _w then 
-            return G.sticker_map[_w]
+            return raw and G.P_STAKES[_w].stake_level or G.sticker_map[_w]
         end
     end
 end
