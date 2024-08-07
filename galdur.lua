@@ -349,11 +349,7 @@ function populate_stake_card_areas(page)
         card.facing = 'back'
         card.sprite_facing = 'back'
         card.children.back = get_stake_sprite_in_area(count, 3.4*14/41, card)
-        card.children.back.states.hover = card.states.hover
-        card.children.back.states.click = card.states.click
-        card.children.back.states.drag = card.states.drag
-        card.states.collide.can = false
-        card.children.back:set_role({major = card, role_type = 'Glued', draw_major = card})
+    
         local unlocked = true
         local save_data = G.PROFILES[G.SETTINGS.profile].Galdur_wins[Galdur.run_setup.choices.deck.effect.center.key]
         for _,v in ipairs(G.P_CENTER_POOLS.Stake[count].applied_stakes) do
@@ -364,10 +360,16 @@ function populate_stake_card_areas(page)
         if not unlocked then
             card.params.stake_chip_locked = true
             card.children.back = Sprite(card.T.x, card.T.y, 3.4*14/41, 3.4*14/41,G.ASSET_ATLAS['galdur_locked_stake'], {x=0,y=0})
+            
         end
         if save_data and save_data[G.P_CENTER_POOLS.Stake[count].key] then
             card.children.back.won = true
         end
+        card.children.back.states.hover = card.states.hover
+        card.children.back.states.click = card.states.click
+        card.children.back.states.drag = card.states.drag
+        card.states.collide.can = false
+        card.children.back:set_role({major = card, role_type = 'Glued', draw_major = card})
         Galdur.run_setup.stake_select_areas[i]:emplace(card)
         count = count + 1
     end
