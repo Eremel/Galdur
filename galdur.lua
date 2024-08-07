@@ -528,7 +528,7 @@ end
 function deck_select_page_stake()
     generate_stake_card_areas()
     generate_chip_tower()
-    populate_chip_tower(get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key)+1)
+    populate_chip_tower(math.min(get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key)+1, #G.P_CENTER_POOLS.Stake))
 
     generate_deck_preview()
     populate_deck_preview(Galdur.run_setup.choices.deck, true)
@@ -807,7 +807,7 @@ function get_deck_win_sticker_galdur(_center)
     if G.PROFILES[G.SETTINGS.profile].Galdur_wins[_center.key] then 
         local _w = nil
         for key, v in pairs(G.PROFILES[G.SETTINGS.profile].Galdur_wins[_center.key]) do
-            if G.P_STAKES[key].stake_level > (_w and G.P_STAKES[_w].stake_level or 0) then
+            if (G.P_STAKES[key] and G.P_STAKES[key].stake_level or 0) > (_w and G.P_STAKES[_w].stake_level or 0) then
                 _w = key
             end
         end
