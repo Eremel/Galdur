@@ -169,7 +169,17 @@ G.FUNCS.exit_overlay_menu = function()
     exit_overlay()
   end
 
--- Deck Selection Functions
+local deck_win = set_deck_win
+function set_deck_win()
+    if G.GAME.selected_back and G.GAME.selected_back.effect and G.GAME.selected_back.effect.center and G.GAME.selected_back.effect.center.key then
+        local deck_key = G.GAME.selected_back.effect.center.key
+        if not G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key] then G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key] = {} end
+        G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key][G.P_CENTER_POOLS.Stake[G.GAME.stake].key] = (G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key][G.P_CENTER_POOLS.Stake[G.GAME.stake].key] or 0) + 1
+    end
+    deck_win()
+end
+
+  -- Deck Selection Functions
 function generate_deck_card_areas()
     if Galdur.run_setup.deck_select_areas then
         for i=1, #Galdur.run_setup.deck_select_areas do
@@ -418,7 +428,6 @@ function G.UIDEF.run_setup_option_new_model(type)
     
     generate_deck_card_areas()
     generate_stake_card_areas()
-    generate_dummy_objects()
     
     Galdur.run_setup.current_page = 1
     Galdur.run_setup.pages.prev_button = ""
@@ -636,43 +645,6 @@ function populate_deck_preview(_deck, silent)
     end
 end
 
-function calculate_deck_size()
-    G.playing_cards = {}
-    local card_protos = nil
-    local _de = nil
-
-    if not card_protos then 
-        card_protos = {}
-        for k, v in pairs(G.P_CARDS) do
-            local _ = nil
-            if G.GAME.starting_params.erratic_suits_and_ranks then _, k = pseudorandom_element(G.P_CARDS, pseudoseed('erratic')) end
-            local _r, _s = string.sub(k, 3, 3), string.sub(k, 1, 1)
-            local keep, _e, _d, _g = true, nil, nil, nil
-            if _de then
-                if _de.yes_ranks and not _de.yes_ranks[_r] then keep = false end
-                if _de.no_ranks and _de.no_ranks[_r] then keep = false end
-                if _de.yes_suits and not _de.yes_suits[_s] then keep = false end
-                if _de.no_suits and _de.no_suits[_s] then keep = false end
-                if _de.enhancement then _e = _de.enhancement end
-                if _de.edition then _d = _de.edition end
-                if _de.gold_seal then _g = _de.gold_seal end
-            end
-
-            if G.GAME.starting_params.no_faces and (_r == 'K' or _r == 'Q' or _r == 'J') then keep = false end
-            
-            if keep then card_protos[#card_protos+1] = {s=_s,r=_r,e=_e,d=_d,g=_g} end
-        end
-    end 
-
-    if G.GAME.starting_params.extra_cards then 
-        for k, v in pairs(G.GAME.starting_params.extra_cards) do
-            card_protos[#card_protos+1] = v
-        end
-    end
-    
-    return #card_protos
-end
-
 -- Chip Tower Functions
 function generate_chip_tower()
     if Galdur.run_setup.chip_tower then
@@ -786,15 +758,6 @@ function create_stake_unlock_message(stake)
             {n=G.UIT.T, config={text = split[2], scale = 0.3, colour = G.C.UI.TEXT_DARK}}
         }}
     }
-end
-
-function generate_dummy_objects()
-    G.consumeables = CardArea(-10, 0,2.3*G.CARD_W,0.95*G.CARD_H, {card_limit = G.GAME.starting_params.consumable_slots, type = 'discard', highlight_limit = 1})
-    G.jokers = G.consumeables
-    G.discard = G.consumeables
-    G.deck = G.consumeables
-    G.hand = G.consumeables
-    G.play = G.consumeables
 end
 
 function initial_conversion()
