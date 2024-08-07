@@ -169,7 +169,17 @@ G.FUNCS.exit_overlay_menu = function()
     exit_overlay()
   end
 
--- Deck Selection Functions
+local deck_win = set_deck_win
+function set_deck_win()
+    if G.GAME.selected_back and G.GAME.selected_back.effect and G.GAME.selected_back.effect.center and G.GAME.selected_back.effect.center.key then
+        local deck_key = G.GAME.selected_back.effect.center.key
+        if not G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key] then G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key] = {} end
+        G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key][G.P_CENTER_POOLS.Stake[G.GAME.stake].key] = (G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key][G.P_CENTER_POOLS.Stake[G.GAME.stake].key] or 0) + 1
+    end
+    deck_win()
+end
+
+  -- Deck Selection Functions
 function generate_deck_card_areas()
     if Galdur.run_setup.deck_select_areas then
         for i=1, #Galdur.run_setup.deck_select_areas do
@@ -210,7 +220,7 @@ function populate_deck_card_areas(page)
     local count = 1 + (page - 1) * 12
     for i=1, 12 do
         if count > #G.P_CENTER_POOLS.Back then return end
-        local card_number = 10
+        local card_number = Galdur.config.reduce and 1 or 10
         for index = 1, card_number do
             local card = Card(Galdur.run_setup.deck_select_areas[i].T.x,Galdur.run_setup.deck_select_areas[i].T.y, G.CARD_W, G.CARD_H, G.P_CENTER_POOLS.Back[count], G.P_CENTER_POOLS.Back[count],
                 {viewed_back = Back(G.P_CENTER_POOLS.Back[count]), deck_select = true})
@@ -347,7 +357,7 @@ function populate_stake_card_areas(page)
         local unlocked = true
         local save_data = G.PROFILES[G.SETTINGS.profile].Galdur_wins[Galdur.run_setup.choices.deck.effect.center.key]
         for _,v in ipairs(G.P_CENTER_POOLS.Stake[count].applied_stakes) do
-            if not G.PROFILES[G.SETTINGS.profile].all_unlocked and (not save_data or (save_data and not save_data['stake_'..v])) then
+            if not Galdur.config.unlock_all and (not save_data or (save_data and not save_data['stake_'..v])) then
                 unlocked = false
             end
         end
@@ -418,7 +428,6 @@ function G.UIDEF.run_setup_option_new_model(type)
     
     generate_deck_card_areas()
     generate_stake_card_areas()
-    generate_dummy_objects()
     
     Galdur.run_setup.current_page = 1
     Galdur.run_setup.pages.prev_button = ""
@@ -547,12 +556,18 @@ table.insert(Galdur.run_setup.pages, {definition = deck_select_page_stake, name 
 
 SMODS.current_mod.config_tab = function()
     return {n = G.UIT.ROOT, config = {r = 0.1, minw = 5, align = "tm", padding = 0.2, colour = G.C.BLACK}, nodes = {
-        {n = G.UIT.R, config = { align = "cm", padding = 0.01 }, nodes = {
+        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_use_desc')} }, nodes = {
                 create_toggle({label = localize('gald_master'), ref_table = Galdur.config, ref_value = 'use'})
         }},
-        {n = G.UIT.R, config = { align = "cm", padding = 0.01 }, nodes = {
+        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_anim_desc')} }, nodes = {
             create_toggle({label = localize('gald_anim'), ref_table = Galdur.config, ref_value = 'animation'})
-        }}   
+        }},
+        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_reduce_desc')} }, nodes = {
+            create_toggle({label = localize('gald_reduce'), ref_table = Galdur.config, ref_value = 'reduce'})
+        }},
+        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_unlock_desc')} }, nodes = {
+            create_toggle({label = localize('gald_unlock'), ref_table = Galdur.config, ref_value = 'unlock_all'})
+        }},
     }}
 end
 
@@ -600,10 +615,8 @@ end
 function populate_deck_preview(_deck, silent)
     if Galdur.run_setup.selected_deck_area.cards then remove_all(Galdur.run_setup.selected_deck_area.cards); Galdur.run_setup.selected_deck_area.cards = {} end
     if not _deck then _deck = Back(G.P_CENTERS['b_red']) end
-    G.GAME.modifiers = {}
-    G.GAME.starting_params = get_starting_params()
-    _deck:apply_to_run()
-    Galdur.run_setup.selected_deck_height = calculate_deck_size()
+
+    Galdur.run_setup.selected_deck_height = Galdur.config.reduce and 1 or _deck.effect.center.galdur_height or 52
     for index = 1, Galdur.run_setup.selected_deck_height do
         local card = Card(Galdur.run_setup.selected_deck_area.T.x+2*G.CARD_W, -2*G.CARD_H, G.CARD_W, G.CARD_H,
             _deck.effect.center, _deck.effect.center, {viewed_back = _deck, deck_select = true})
@@ -633,43 +646,6 @@ function populate_deck_preview(_deck, silent)
             }), 'galdur')
         end
     end
-end
-
-function calculate_deck_size()
-    G.playing_cards = {}
-    local card_protos = nil
-    local _de = nil
-
-    if not card_protos then 
-        card_protos = {}
-        for k, v in pairs(G.P_CARDS) do
-            local _ = nil
-            if G.GAME.starting_params.erratic_suits_and_ranks then _, k = pseudorandom_element(G.P_CARDS, pseudoseed('erratic')) end
-            local _r, _s = string.sub(k, 3, 3), string.sub(k, 1, 1)
-            local keep, _e, _d, _g = true, nil, nil, nil
-            if _de then
-                if _de.yes_ranks and not _de.yes_ranks[_r] then keep = false end
-                if _de.no_ranks and _de.no_ranks[_r] then keep = false end
-                if _de.yes_suits and not _de.yes_suits[_s] then keep = false end
-                if _de.no_suits and _de.no_suits[_s] then keep = false end
-                if _de.enhancement then _e = _de.enhancement end
-                if _de.edition then _d = _de.edition end
-                if _de.gold_seal then _g = _de.gold_seal end
-            end
-
-            if G.GAME.starting_params.no_faces and (_r == 'K' or _r == 'Q' or _r == 'J') then keep = false end
-            
-            if keep then card_protos[#card_protos+1] = {s=_s,r=_r,e=_e,d=_d,g=_g} end
-        end
-    end 
-
-    if G.GAME.starting_params.extra_cards then 
-        for k, v in pairs(G.GAME.starting_params.extra_cards) do
-            card_protos[#card_protos+1] = v
-        end
-    end
-    
-    return #card_protos
 end
 
 -- Chip Tower Functions
@@ -785,15 +761,6 @@ function create_stake_unlock_message(stake)
             {n=G.UIT.T, config={text = split[2], scale = 0.3, colour = G.C.UI.TEXT_DARK}}
         }}
     }
-end
-
-function generate_dummy_objects()
-    G.consumeables = CardArea(-10, 0,2.3*G.CARD_W,0.95*G.CARD_H, {card_limit = G.GAME.starting_params.consumable_slots, type = 'discard', highlight_limit = 1})
-    G.jokers = G.consumeables
-    G.discard = G.consumeables
-    G.deck = G.consumeables
-    G.hand = G.consumeables
-    G.play = G.consumeables
 end
 
 function initial_conversion()

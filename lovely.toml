@@ -62,18 +62,6 @@ payload = '''
 local selected_back = saveTable and saveTable.BACK.name or (args.challenge and args.challenge.deck and args.challenge.deck.type) or (args.deck and args.deck.name) or (self.GAME.viewed_back and self.GAME.viewed_back.name) or self.GAME.selected_back and self.GAME.selected_back.name or 'Red Deck'
 '''
 
-# Remove delay
-# Back:apply_to_run()
-[[patches]]
-[patches.pattern]
-target = 'back.lua'
-pattern = "delay(0.4)"
-position = 'at'
-match_indent = true
-payload = '''
-if not G.jokers then delay(0.4) end
-'''
-
 # Modify deck win save
 # set_deck_win()
 [[patches]]
