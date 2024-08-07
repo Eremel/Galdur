@@ -159,7 +159,7 @@ end
 
 local exit_overlay = G.FUNCS.exit_overlay_menu
 G.FUNCS.exit_overlay_menu = function()
-    if Galdur.config.use then
+    if Galdur.config.use and (Galdur.run_setup.deck_select_areas or Galdur.run_setup.stake_select_areas) then
         for _, clean_up in pairs(Galdur.clean_up_functions) do
             clean_up()
         end
@@ -234,6 +234,7 @@ function populate_deck_card_areas(page)
 end
 
 function Galdur.clean_up_functions.clean_deck_areas()
+    if not Galdur.run_setup.deck_select_areas then return end
     for j = 1, #Galdur.run_setup.deck_select_areas do
         if Galdur.run_setup.deck_select_areas[j].cards then
             remove_all(Galdur.run_setup.deck_select_areas[j].cards)
@@ -362,6 +363,7 @@ function populate_stake_card_areas(page)
 end
 
 function Galdur.clean_up_functions.clean_stake_areas()
+    if not Galdur.run_setup.stake_select_areas then return end
     for j = 1, #Galdur.run_setup.stake_select_areas do
         if Galdur.run_setup.stake_select_areas[j].cards then
             remove_all(Galdur.run_setup.stake_select_areas[j].cards)
