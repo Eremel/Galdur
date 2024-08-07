@@ -159,10 +159,12 @@ end
 
 local exit_overlay = G.FUNCS.exit_overlay_menu
 G.FUNCS.exit_overlay_menu = function()
-    for _, clean_up in pairs(Galdur.clean_up_functions) do
-        clean_up()
+    if Galdur.config.use then
+        for _, clean_up in pairs(Galdur.clean_up_functions) do
+            clean_up()
+        end
+        G.E_MANAGER:clear_queue()
     end
-    G.E_MANAGER:clear_queue()
     exit_overlay()
   end
 
