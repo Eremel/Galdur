@@ -26,6 +26,7 @@ Galdur.use = true
 Galdur.animation = true
 Galdur.test_mode = false
 Galdur.hover_index = 0
+G.E_MANAGER.queues.galdur = {}
 
 SMODS.Atlas({ -- art by nekojoe
     key = 'locked_stake',
@@ -110,7 +111,7 @@ function Card:click()
         Galdur.run_setup.selected_deck_from = self.area.config.index
         Galdur.run_setup.choices.deck = Back(self.config.center)
         Galdur.run_setup.choices.stake = get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key)+1
-        G.E_MANAGER:clear_queue()
+        G.E_MANAGER:clear_queue('galdur')
         populate_deck_preview(Galdur.run_setup.choices.deck)
 
         local texts = split_string_2(Galdur.run_setup.choices.deck.loc_name)
@@ -124,7 +125,7 @@ function Card:click()
         text.UIBox:recalculate()
     elseif self.params.stake_chip and not self.params.stake_chip_locked then
         Galdur.run_setup.choices.stake = self.params.stake
-        G.E_MANAGER:clear_queue()
+        G.E_MANAGER:clear_queue('galdur')
         populate_chip_tower(self.params.stake)
     else
         card_click_ref(self)
@@ -163,7 +164,7 @@ G.FUNCS.exit_overlay_menu = function()
         for _, clean_up in pairs(Galdur.clean_up_functions) do
             clean_up()
         end
-        G.E_MANAGER:clear_queue()
+        G.E_MANAGER:clear_queue('galdur')
     end
     exit_overlay()
   end
@@ -629,7 +630,7 @@ function populate_deck_preview(_deck, silent)
                     Galdur.run_setup.selected_deck_area:emplace(card)
                     return true
                 end)
-            }))
+            }), 'galdur')
         end
     end
 end
@@ -711,7 +712,7 @@ function populate_chip_tower(_stake)
                     Galdur.run_setup.chip_tower:emplace(card)
                     return true
                 end)
-            }))
+            }), 'galdur')
         else
             Galdur.run_setup.chip_tower:emplace(card)
         end
