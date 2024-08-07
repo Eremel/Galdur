@@ -6,7 +6,7 @@
 --- MOD_DESCRIPTION: A modification to the run setup screen to ease use.
 --- BADGE_COLOUR: 3FC7EB
 --- PRIORITY: -10
---- VERSION: 1.01b
+--- VERSION: 1.01e
 
 -- Definitions
 Galdur = SMODS.current_mod
