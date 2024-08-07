@@ -4,7 +4,7 @@
 --- PREFIX: galdur
 --- MOD_AUTHOR: [Eremel_]
 --- MOD_DESCRIPTION: A modification to the run setup screen to ease use.
---- BADGE_COLOUR: E16036
+--- BADGE_COLOUR: 3FC7EB
 --- PRIORITY: -10
 --- VERSION: 1.01b
 
@@ -557,19 +557,11 @@ table.insert(Galdur.run_setup.pages, {definition = deck_select_page_deck, name =
 table.insert(Galdur.run_setup.pages, {definition = deck_select_page_stake, name = 'gald_select_stake'})
 
 SMODS.current_mod.config_tab = function()
-    return {n = G.UIT.ROOT, config = {r = 0.1, minw = 5, align = "tm", padding = 0.2, colour = G.C.BLACK}, nodes = {
-        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_use_desc')} }, nodes = {
-                create_toggle({label = localize('gald_master'), ref_table = Galdur.config, ref_value = 'use'})
-        }},
-        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_anim_desc')} }, nodes = {
-            create_toggle({label = localize('gald_anim'), ref_table = Galdur.config, ref_value = 'animation'})
-        }},
-        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_reduce_desc')} }, nodes = {
-            create_toggle({label = localize('gald_reduce'), ref_table = Galdur.config, ref_value = 'reduce'})
-        }},
-        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_unlock_desc')} }, nodes = {
-            create_toggle({label = localize('gald_unlock'), ref_table = Galdur.config, ref_value = 'unlock_all'})
-        }},
+    return {n = G.UIT.ROOT, config = {r = 0.1, minw = 4, align = "tm", padding = 0.2, colour = G.C.BLACK}, nodes = {
+            create_toggle({label = localize('gald_master'), ref_table = Galdur.config, ref_value = 'use', info = localize('gald_use_desc'), active_colour = Galdur.badge_colour, right = true}),
+            create_toggle({label = localize('gald_anim'), ref_table = Galdur.config, ref_value = 'animation', info = localize('gald_anim_desc'), active_colour = Galdur.badge_colour, right = true}),
+            create_toggle({label = localize('gald_reduce'), ref_table = Galdur.config, ref_value = 'reduce', info = localize('gald_reduce_desc'), active_colour = Galdur.badge_colour, right = true}),
+            create_toggle({label = localize('gald_unlock'), ref_table = Galdur.config, ref_value = 'unlock_all', info = localize('gald_unlock_desc'), active_colour = Galdur.badge_colour, right = true})
     }}
 end
 
@@ -632,7 +624,7 @@ function populate_deck_preview(_deck, silent)
         card.children.back:set_role({major = card, role_type = 'Glued', draw_major = card})
         if index == Galdur.run_setup.selected_deck_height then
             G.sticker_card = card
-            card.sticker = get_deck_win_sticker_galdur(_deck.effect.center)
+            card.sticker = get_deck_win_galdur(_deck.effect.center)
             card.deck_select_position = true
         end
         if silent or not Galdur.config.animation or index < Galdur.run_setup.selected_deck_height/2 then
@@ -750,9 +742,8 @@ function create_stake_unlock_message(stake)
     local number_applied_stakes = #stake.applied_stakes
     local string_output = localize('gald_unlock_1')
     for i,v in ipairs(stake.applied_stakes) do
-        string_output = string_output .. localize({type='name_text', set='Stake', key='stake_'..v}) .. (i < number_applied_stakes and localize('gald_unlock_and') or ' ')
+        string_output = string_output .. localize({type='name_text', set='Stake', key='stake_'..v}) .. (i < number_applied_stakes and localize('gald_unlock_and') or '')
     end
-    string_output = string_output .. localize('gald_unlock_2')
     local split = split_string_2(string_output)
 
     return {
