@@ -1,5 +1,6 @@
 return {
 	["use"] = true,
     ["animation"] = true,
-    ["reduce"] = false
+    ["reduce"] = false,
+    ["unlock_all"] = false
 }

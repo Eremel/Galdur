@@ -17,6 +17,11 @@ return {
                 "This option reduces the",
                 "number of cards on the screen"    
             },
+            ["gald_unlock"] = "Unlock all stakes",
+            ["gald_unlock_desc"] = {
+                "This option sets all",
+                "stakes as playable"    
+            },
             ["gald_select_deck"] = "Select Deck",
             ["gald_select_stake"] = "Select Stake",
             ["gald_play"] = "Play",

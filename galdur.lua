@@ -357,7 +357,7 @@ function populate_stake_card_areas(page)
         local unlocked = true
         local save_data = G.PROFILES[G.SETTINGS.profile].Galdur_wins[Galdur.run_setup.choices.deck.effect.center.key]
         for _,v in ipairs(G.P_CENTER_POOLS.Stake[count].applied_stakes) do
-            if not G.PROFILES[G.SETTINGS.profile].all_unlocked and (not save_data or (save_data and not save_data['stake_'..v])) then
+            if not Galdur.config.unlock_all and (not save_data or (save_data and not save_data['stake_'..v])) then
                 unlocked = false
             end
         end
@@ -564,7 +564,10 @@ SMODS.current_mod.config_tab = function()
         }},
         {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_reduce_desc')} }, nodes = {
             create_toggle({label = localize('gald_reduce'), ref_table = Galdur.config, ref_value = 'reduce'})
-    }}, 
+        }},
+        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_unlock_desc')} }, nodes = {
+            create_toggle({label = localize('gald_unlock'), ref_table = Galdur.config, ref_value = 'unlock_all'})
+        }},
     }}
 end
 
