@@ -25,9 +25,8 @@ return {
             ["gald_play"] = "开始游戏",
             ["gald_selected"] = "已选择",
             ["gald_locked"] = "锁定",
-            ["gald_unlock_1"] = "在",
+            ["gald_unlock_1"] = "赢下",
             ["gald_unlock_and"] = "和",
-            ["gald_unlock_2"] = "中赢得赛局以解锁此赌注",
         }
     }
 }
