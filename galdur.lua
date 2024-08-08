@@ -477,6 +477,9 @@ G.FUNCS.deck_select_next = function(e)
     Galdur.run_setup.current_page = math.min(math.max(Galdur.run_setup.current_page + e.config.ref_value, 1), #Galdur.run_setup.pages+1)
     if Galdur.run_setup.current_page > #Galdur.run_setup.pages then
         if not Galdur.run_setup.choices.seed_select then Galdur.run_setup.choices.seed = nil end
+        G.PROFILES[G.SETTINGS.profile].MEMORY.deck = Galdur.run_setup.choices.deck.effect.center.name
+        G.PROFILES[G.SETTINGS.profile].MEMORY.stake = Galdur.run_setup.choices.stake
+
         G.FUNCS.start_run(nil, Galdur.run_setup.choices)
         return
     elseif Galdur.run_setup.current_page == #Galdur.run_setup.pages then
