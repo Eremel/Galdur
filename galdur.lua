@@ -4,9 +4,9 @@
 --- PREFIX: galdur
 --- MOD_AUTHOR: [Eremel_]
 --- MOD_DESCRIPTION: A modification to the run setup screen to ease use.
---- BADGE_COLOUR: E16036
+--- BADGE_COLOUR: 3FC7EB
 --- PRIORITY: -10
---- VERSION: 1.01b
+--- VERSION: 1.01e
 
 -- Definitions
 Galdur = SMODS.current_mod
@@ -110,7 +110,7 @@ function Card:click()
     if self.deck_select_position and self.config.center.unlocked then
         Galdur.run_setup.selected_deck_from = self.area.config.index
         Galdur.run_setup.choices.deck = Back(self.config.center)
-        Galdur.run_setup.choices.stake = get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key)+1
+        Galdur.run_setup.choices.stake = get_deck_win_galdur(Galdur.run_setup.choices.deck.effect.center, true)+1
         G.E_MANAGER:clear_queue('galdur')
         populate_deck_preview(Galdur.run_setup.choices.deck)
 
@@ -223,7 +223,7 @@ function populate_deck_card_areas(page)
         local card_number = Galdur.config.reduce and 1 or 10
         for index = 1, card_number do
             local card = Card(Galdur.run_setup.deck_select_areas[i].T.x,Galdur.run_setup.deck_select_areas[i].T.y, G.CARD_W, G.CARD_H, G.P_CENTER_POOLS.Back[count], G.P_CENTER_POOLS.Back[count],
-                {viewed_back = Back(G.P_CENTER_POOLS.Back[count]), deck_select = true})
+                {galdur_back = Back(G.P_CENTER_POOLS.Back[count]), deck_select = true})
             card.sprite_facing = 'back'
             card.facing = 'back'
             card.children.back = Sprite(card.T.x, card.T.y, card.T.w, card.T.h, G.ASSET_ATLAS[G.P_CENTER_POOLS.Back[count].atlas or 'centers'], G.P_CENTER_POOLS.Back[count].unlocked and G.P_CENTER_POOLS.Back[count].pos or {x = 4, y = 0})
@@ -236,7 +236,7 @@ function populate_deck_card_areas(page)
             Galdur.run_setup.deck_select_areas[i]:emplace(card)
             if index == card_number then
                 G.sticker_card = card
-                card.sticker = get_deck_win_sticker_galdur(G.P_CENTER_POOLS.Back[count])
+                card.sticker = get_deck_win_galdur(G.P_CENTER_POOLS.Back[count])
                 card.deck_select_position = {page = page, count = i}
             end
         end
@@ -349,11 +349,7 @@ function populate_stake_card_areas(page)
         card.facing = 'back'
         card.sprite_facing = 'back'
         card.children.back = get_stake_sprite_in_area(count, 3.4*14/41, card)
-        card.children.back.states.hover = card.states.hover
-        card.children.back.states.click = card.states.click
-        card.children.back.states.drag = card.states.drag
-        card.states.collide.can = false
-        card.children.back:set_role({major = card, role_type = 'Glued', draw_major = card})
+    
         local unlocked = true
         local save_data = G.PROFILES[G.SETTINGS.profile].Galdur_wins[Galdur.run_setup.choices.deck.effect.center.key]
         for _,v in ipairs(G.P_CENTER_POOLS.Stake[count].applied_stakes) do
@@ -361,13 +357,19 @@ function populate_stake_card_areas(page)
                 unlocked = false
             end
         end
+        if save_data and save_data[G.P_CENTER_POOLS.Stake[count].key] then
+            card.children.back.won = true
+            unlocked = true
+        end
         if not unlocked then
             card.params.stake_chip_locked = true
             card.children.back = Sprite(card.T.x, card.T.y, 3.4*14/41, 3.4*14/41,G.ASSET_ATLAS['galdur_locked_stake'], {x=0,y=0})
         end
-        if save_data and save_data[G.P_CENTER_POOLS.Stake[count].key] then
-            card.children.back.won = true
-        end
+        card.children.back.states.hover = card.states.hover
+        card.children.back.states.click = card.states.click
+        card.children.back.states.drag = card.states.drag
+        card.states.collide.can = false
+        card.children.back:set_role({major = card, role_type = 'Glued', draw_major = card})
         Galdur.run_setup.stake_select_areas[i]:emplace(card)
         count = count + 1
     end
@@ -526,7 +528,7 @@ end
 function deck_select_page_stake()
     generate_stake_card_areas()
     generate_chip_tower()
-    populate_chip_tower(get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key)+1)
+    populate_chip_tower(math.min(get_deck_win_galdur(Galdur.run_setup.choices.deck.effect.center, true)+1, #G.P_CENTER_POOLS.Stake))
 
     generate_deck_preview()
     populate_deck_preview(Galdur.run_setup.choices.deck, true)
@@ -555,19 +557,11 @@ table.insert(Galdur.run_setup.pages, {definition = deck_select_page_deck, name =
 table.insert(Galdur.run_setup.pages, {definition = deck_select_page_stake, name = 'gald_select_stake'})
 
 SMODS.current_mod.config_tab = function()
-    return {n = G.UIT.ROOT, config = {r = 0.1, minw = 5, align = "tm", padding = 0.2, colour = G.C.BLACK}, nodes = {
-        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_use_desc')} }, nodes = {
-                create_toggle({label = localize('gald_master'), ref_table = Galdur.config, ref_value = 'use'})
-        }},
-        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_anim_desc')} }, nodes = {
-            create_toggle({label = localize('gald_anim'), ref_table = Galdur.config, ref_value = 'animation'})
-        }},
-        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_reduce_desc')} }, nodes = {
-            create_toggle({label = localize('gald_reduce'), ref_table = Galdur.config, ref_value = 'reduce'})
-        }},
-        {n = G.UIT.R, config = { align = "cm", padding = 0.01, tooltip = {scale = 0.4, text = localize('gald_unlock_desc')} }, nodes = {
-            create_toggle({label = localize('gald_unlock'), ref_table = Galdur.config, ref_value = 'unlock_all'})
-        }},
+    return {n = G.UIT.ROOT, config = {r = 0.1, minw = 4, align = "tm", padding = 0.2, colour = G.C.BLACK}, nodes = {
+            create_toggle({label = localize('gald_master'), ref_table = Galdur.config, ref_value = 'use', info = localize('gald_use_desc'), active_colour = Galdur.badge_colour, right = true}),
+            create_toggle({label = localize('gald_anim'), ref_table = Galdur.config, ref_value = 'animation', info = localize('gald_anim_desc'), active_colour = Galdur.badge_colour, right = true}),
+            create_toggle({label = localize('gald_reduce'), ref_table = Galdur.config, ref_value = 'reduce', info = localize('gald_reduce_desc'), active_colour = Galdur.badge_colour, right = true}),
+            create_toggle({label = localize('gald_unlock'), ref_table = Galdur.config, ref_value = 'unlock_all', info = localize('gald_unlock_desc'), active_colour = Galdur.badge_colour, right = true})
     }}
 end
 
@@ -609,17 +603,24 @@ function generate_deck_preview()
 
     Galdur.run_setup.selected_deck_area = CardArea(15.475, 0, G.CARD_W, G.CARD_H, 
     {card_limit = 52, type = 'deck', highlight_limit = 0, deck_height = 0.15, thin_draw = 1, selected_deck = true})
+    Galdur.run_setup.selected_deck_area_holding = CardArea(Galdur.run_setup.selected_deck_area.T.x+2*G.CARD_W, -2*G.CARD_H, G.CARD_W, G.CARD_H, 
+    {card_limit = 52, type = 'deck', highlight_limit = 0, deck_height = 0.15, thin_draw = 1, selected_deck = true})
    
 end
 
 function populate_deck_preview(_deck, silent)
-    if Galdur.run_setup.selected_deck_area.cards then remove_all(Galdur.run_setup.selected_deck_area.cards); Galdur.run_setup.selected_deck_area.cards = {} end
+    if Galdur.run_setup.selected_deck_area.cards then
+        remove_all(Galdur.run_setup.selected_deck_area.cards)
+        Galdur.run_setup.selected_deck_area.cards = {}
+        remove_all(Galdur.run_setup.selected_deck_area_holding.cards)
+        Galdur.run_setup.selected_deck_area_holding.cards = {} end
     if not _deck then _deck = Back(G.P_CENTERS['b_red']) end
 
     Galdur.run_setup.selected_deck_height = Galdur.config.reduce and 1 or _deck.effect.center.galdur_height or 52
     for index = 1, Galdur.run_setup.selected_deck_height do
         local card = Card(Galdur.run_setup.selected_deck_area.T.x+2*G.CARD_W, -2*G.CARD_H, G.CARD_W, G.CARD_H,
-            _deck.effect.center, _deck.effect.center, {viewed_back = _deck, deck_select = true})
+            _deck.effect.center, _deck.effect.center, {galdur_back = _deck, deck_select = true})
+        Galdur.run_setup.selected_deck_area_holding:emplace(card)
         card.sprite_facing = 'back'
         card.facing = 'back'
         card.children.back = Sprite(card.T.x, card.T.y, card.T.w, card.T.h, G.ASSET_ATLAS[_deck.effect.center.atlas or 'centers'], _deck.effect.center.pos)
@@ -630,17 +631,21 @@ function populate_deck_preview(_deck, silent)
         card.children.back:set_role({major = card, role_type = 'Glued', draw_major = card})
         if index == Galdur.run_setup.selected_deck_height then
             G.sticker_card = card
-            card.sticker = get_deck_win_sticker_galdur(_deck.effect.center)
+            card.sticker = get_deck_win_galdur(_deck.effect.center)
             card.deck_select_position = true
         end
         if silent or not Galdur.config.animation or index < Galdur.run_setup.selected_deck_height/2 then
-            Galdur.run_setup.selected_deck_area:emplace(card)
+            -- Galdur.run_setup.selected_deck_area_holding:remove_card(card)
+            Galdur.run_setup.selected_deck_area:draw_card_from(Galdur.run_setup.selected_deck_area_holding)
+            -- Galdur.run_setup.selected_deck_area:emplace(card)
         else
             G.E_MANAGER:add_event(Event({
                 trigger = 'immediate',
                 func = (function()
                     play_sound('card1', math.random()*0.2 + 0.9, 0.35)
-                    Galdur.run_setup.selected_deck_area:emplace(card)
+                    -- Galdur.run_setup.selected_deck_area_holding:remove_card(card)
+                    Galdur.run_setup.selected_deck_area:draw_card_from(Galdur.run_setup.selected_deck_area_holding)
+                    -- Galdur.run_setup.selected_deck_area:emplace(card)
                     return true
                 end)
             }), 'galdur')
@@ -660,16 +665,24 @@ function generate_chip_tower()
     end
     Galdur.run_setup.chip_tower = CardArea(G.ROOM.T.w * 0.656, G.ROOM.T.y, 3.4*14/41, 3.4*14/41, 
         {type = 'deck', highlight_limit = 0, draw_layers = {'card'}, thin_draw = 1, stake_chips = true})
+    Galdur.run_setup.chip_tower_holding = CardArea(G.ROOM.T.w * 0.656, G.ROOM.T.y, 3.4*14/41, 3.4*14/41, 
+        {type = 'deck', highlight_limit = 0, draw_layers = {'card'}, thin_draw = 1, stake_chips = true})
 end
 
 function populate_chip_tower(_stake)
-    if Galdur.run_setup.chip_tower.cards then remove_all(Galdur.run_setup.chip_tower.cards); Galdur.run_setup.chip_tower.cards = {} end
+    if Galdur.run_setup.chip_tower.cards then
+        remove_all(Galdur.run_setup.chip_tower.cards)
+        Galdur.run_setup.chip_tower.cards = {}
+        remove_all(Galdur.run_setup.chip_tower_holding.cards)
+        Galdur.run_setup.chip_tower_holding.cards = {}
+    end
     if _stake == 0 then _stake = 1 end
     local applied_stakes = order_stake_chain(build_stake_chain(_stake), _stake)
     for index, stake_index in ipairs(applied_stakes) do
         local card = Card(Galdur.run_setup.chip_tower.T.x, G.ROOM.T.y, 3.4*14/41, 3.4*14/41,
             Galdur.run_setup.choices.deck.effect.center, Galdur.run_setup.choices.deck.effect.center,
             {hover = #applied_stakes - index, stake = stake_index, stake_chip = true})
+        Galdur.run_setup.chip_tower_holding:emplace(card)
         card.facing = 'back'
         card.sprite_facing = 'back'
         card.children.back = get_stake_sprite_in_area(stake_index, 3.4*14/41, Galdur.run_setup.chip_tower)
@@ -685,12 +698,12 @@ function populate_chip_tower(_stake)
                 delay = 0.02,
                 func = (function()
                     play_sound('chips2', math.random()*0.2 + 0.9, 0.35)
-                    Galdur.run_setup.chip_tower:emplace(card)
+                    Galdur.run_setup.chip_tower:draw_card_from(Galdur.run_setup.chip_tower_holding)
                     return true
                 end)
             }), 'galdur')
         else
-            Galdur.run_setup.chip_tower:emplace(card)
+            Galdur.run_setup.chip_tower:draw_card_from(Galdur.run_setup.chip_tower_holding)
         end
     end
 end
@@ -748,9 +761,8 @@ function create_stake_unlock_message(stake)
     local number_applied_stakes = #stake.applied_stakes
     local string_output = localize('gald_unlock_1')
     for i,v in ipairs(stake.applied_stakes) do
-        string_output = string_output .. localize({type='name_text', set='Stake', key='stake_'..v}) .. (i < number_applied_stakes and localize('gald_unlock_and') or ' ')
+        string_output = string_output .. localize({type='name_text', set='Stake', key='stake_'..v}) .. (i < number_applied_stakes and localize('gald_unlock_and') or '')
     end
-    string_output = string_output .. localize('gald_unlock_2')
     local split = split_string_2(string_output)
 
     return {
@@ -801,16 +813,16 @@ function get_joker_win_sticker(_center, index)
     if index then return 0 end
 end
 
-function get_deck_win_sticker_galdur(_center)
+function get_deck_win_galdur(_center, raw)
     if G.PROFILES[G.SETTINGS.profile].Galdur_wins[_center.key] then 
         local _w = nil
         for key, v in pairs(G.PROFILES[G.SETTINGS.profile].Galdur_wins[_center.key]) do
-            if G.P_STAKES[key].stake_level > (_w and G.P_STAKES[_w].stake_level or 0) then
+            if (G.P_STAKES[key] and G.P_STAKES[key].stake_level or 0) > (_w and G.P_STAKES[_w].stake_level or 0) then
                 _w = key
             end
         end
         if _w then 
-            return G.sticker_map[_w]
+            return raw and G.P_STAKES[_w].stake_level or G.sticker_map[_w]
         end
     end
 end
