@@ -825,6 +825,7 @@ function get_deck_win_galdur(_center, raw)
             return raw and G.P_STAKES[_w].stake_level or G.sticker_map[_w]
         end
     end
+    if raw then return 0 end
 end
 
 function G.FUNCS.toggle_seeded_run_galdur(bool, e)
