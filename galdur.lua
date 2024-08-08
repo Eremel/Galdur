@@ -442,22 +442,23 @@ function G.UIDEF.run_setup_option_new_model(type)
                 {n = G.UIT.O, config = {id = 'deck_select_pages', object = UIBox{definition = Galdur.run_setup.pages[Galdur.run_setup.current_page].definition(), config = {align = "cm", offset = {x=0,y=0}}}}},
             }},
             {n=G.UIT.R, config = {align = "cm", minw = 3, offset = {x=0, y=-5}}, nodes ={
-                {n = G.UIT.C, config = {id = 'previous_selection', minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = -1, button = Galdur.run_setup.current_page > 1 and 'deck_select_next' or nil, colour = Galdur.run_setup.current_page > 1 and G.C.BLUE or G.C.GREY, align = "cm", emboss = 0.1}, nodes = {
+                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {id = 'previous_selection', minw = 2.5, minh = 0.8, maxh = 0.8, r = 0.1, hover = true, ref_value = -1, button = Galdur.run_setup.current_page > 1 and 'deck_select_next' or nil, colour = Galdur.run_setup.current_page > 1 and G.C.BLUE or G.C.GREY, align = "cm", emboss = 0.1}, nodes = {
                     {n=G.UIT.T, config={ref_table = Galdur.run_setup.pages, ref_value = 'prev_button', scale = 0.4, colour = G.C.WHITE}}
-                }},
+                }}}},
                 {n=G.UIT.C, config={align = "cm", padding = 0.05, minh = 0.9, minw = 6.6}, nodes={
                     {n=G.UIT.O, config={id = 'seed_input', align = "cm", object = Moveable()}, nodes={}},
                 }},
                 {n=G.UIT.C, config={align = "cm", minw = 2.2, id = 'run_setup_seed'}, nodes={
-                    create_toggle{col = true, label = localize('k_seeded_run'), label_scale = 0.25, w = 0, scale = 0.7, callback = G.FUNCS.toggle_seeded_run_galdur, ref_table = Galdur.run_setup.choices, ref_value = 'seed_select'} or nil
+                    {n=G.UIT.R, config={align='cr'}, nodes = {create_toggle{col = true, label = localize('k_seeded_run'), label_scale = 0.25, w = 0, scale = 0.7, callback = G.FUNCS.toggle_seeded_run_galdur, ref_table = Galdur.run_setup.choices, ref_value = 'seed_select'}}},
+                    {n=G.UIT.R, config={align='cr'}, nodes = {G.FUNCS.zen_restart_ante and create_toggle{col = true, label = "Zen Mode", label_scale = 0.25, w = 0, scale = 0.7, ref_table = G, ref_value = 'run_zen_mode', active_colour = G.C.BLUE}}}
                 }},
-                {n = G.UIT.C, config = {minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'deck_select_next', colour = G.C.BLUE, align = "cm", emboss = 0.1}, nodes = {
+                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {minw = 2.5, minh = 0.8, maxh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'deck_select_next', colour = G.C.BLUE, align = "cm", emboss = 0.1}, nodes = {
                     {n=G.UIT.T, config={ref_table = Galdur.run_setup.pages, ref_value = 'next_button', scale = 0.4, colour = G.C.WHITE}}
-                }},
+                }}}},
                 {n=G.UIT.C, config={minw = 0.5}},
-                {n = G.UIT.C, config = {maxw = 2.5, minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'quick_start', colour = G.C.ORANGE, align = "cm", emboss = 0.1}, nodes = {
+                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {maxw = 2.5, minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'quick_start', colour = G.C.ORANGE, align = "cm", emboss = 0.1}, nodes = {
                     {n=G.UIT.T, config={text = '[NYI]', scale = 0.4, colour = G.C.WHITE}}
-                }}
+                }}}}
             }}
         }}
     }}
