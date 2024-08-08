@@ -6,7 +6,7 @@
 --- MOD_DESCRIPTION: A modification to the run setup screen to ease use.
 --- BADGE_COLOUR: 3FC7EB
 --- PRIORITY: -10
---- VERSION: 1.01e
+--- VERSION: 1.01f
 
 -- Definitions
 Galdur = SMODS.current_mod
@@ -47,7 +47,7 @@ end
 
 local card_hover_ref = Card.hover
 function Card:hover()
-    if self.deck_select_position and (not self.states.drag.is or G.CONTROLLER.HID.touch) and not self.no_ui and not G.debug_tooltip_toggle then
+    if self.params.deck_select and (not self.states.drag.is or G.CONTROLLER.HID.touch) and not self.no_ui and not G.debug_tooltip_toggle then
         self:juice_up(0.05, 0.03)
         play_sound('paper1', math.random()*0.2 + 0.9, 0.35)
         if self.children.alert and not self.config.center.alerted then
@@ -632,7 +632,6 @@ function populate_deck_preview(_deck, silent)
         if index == Galdur.run_setup.selected_deck_height then
             G.sticker_card = card
             card.sticker = get_deck_win_galdur(_deck.effect.center)
-            card.deck_select_position = true
         end
         if silent or not Galdur.config.animation or index < Galdur.run_setup.selected_deck_height/2 then
             -- Galdur.run_setup.selected_deck_area_holding:remove_card(card)
