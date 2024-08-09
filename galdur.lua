@@ -113,7 +113,7 @@ function Card:click()
         Galdur.run_setup.choices.deck = Back(self.config.center)
         Galdur.run_setup.choices.stake = get_deck_win_galdur(Galdur.run_setup.choices.deck.effect.center, true)+1
         G.E_MANAGER:clear_queue('galdur')
-        populate_deck_preview(Galdur.run_setup.choices.deck)
+        Galdur.populate_deck_preview(Galdur.run_setup.choices.deck)
 
         local texts = split_string_2(Galdur.run_setup.choices.deck.loc_name)
         local text = G.OVERLAY_MENU:get_UIE_by_ID('selected_deck_name')
@@ -127,7 +127,7 @@ function Card:click()
     elseif self.params.stake_chip and not self.params.stake_chip_locked then
         Galdur.run_setup.choices.stake = self.params.stake
         G.E_MANAGER:clear_queue('galdur')
-        populate_chip_tower(self.params.stake)
+        Galdur.populate_chip_tower(self.params.stake)
     else
         card_click_ref(self)
     end
@@ -541,8 +541,8 @@ end
 
 function deck_select_page_deck()
     generate_deck_card_areas()
-    generate_deck_preview()
-    populate_deck_preview(Galdur.run_setup.choices.deck, true)
+    Galdur.generate_deck_preview()
+    Galdur.populate_deck_preview(Galdur.run_setup.choices.deck, true)
 
     return 
         {n=G.UIT.ROOT, config={align = "tm", minh = 3.8, colour = G.C.CLEAR, padding=0.1}, nodes={
@@ -550,18 +550,18 @@ function deck_select_page_deck()
                 generate_deck_card_areas_ui(), 
                 create_deck_page_cycle(),
             }},
-            selected_deck_preview()
+            Galdur.display_deck_preview()
         }}
     
 end
 
 function deck_select_page_stake()
     generate_stake_card_areas()
-    generate_chip_tower()
-    populate_chip_tower(math.min(get_deck_win_galdur(Galdur.run_setup.choices.deck.effect.center, true)+1, #G.P_CENTER_POOLS.Stake))
+    Galdur.generate_chip_tower()
+    Galdur.populate_chip_tower(math.min(get_deck_win_galdur(Galdur.run_setup.choices.deck.effect.center, true)+1, #G.P_CENTER_POOLS.Stake))
 
-    generate_deck_preview()
-    populate_deck_preview(Galdur.run_setup.choices.deck, true)
+    Galdur.generate_deck_preview()
+    Galdur.populate_deck_preview(Galdur.run_setup.choices.deck, true)
 
     return 
     {n=G.UIT.ROOT, config={align = "tm", minh = 3.8, colour = G.C.CLEAR, padding=0.1}, nodes={
@@ -569,8 +569,8 @@ function deck_select_page_stake()
             generate_stake_card_areas_ui(),
             create_stake_page_cycle(),
         }},
-        display_chip_tower(),
-        selected_deck_preview()  
+        Galdur.display_chip_tower(),
+        Galdur.display_deck_preview()  
     }}
 end
 
@@ -597,7 +597,7 @@ SMODS.current_mod.config_tab = function()
 end
 
 -- Deck Preview Functions
-function selected_deck_preview()
+function Galdur.display_deck_preview()
     local texts = split_string_2(Galdur.run_setup.choices.deck.loc_name)
 
     local deck_node = {n=G.UIT.R, config={align = "tm"}, nodes={
@@ -622,7 +622,7 @@ function selected_deck_preview()
     }}
 end
 
-function generate_deck_preview()
+function Galdur.generate_deck_preview()
     if Galdur.run_setup.selected_deck_area then
         for j=1, #G.I.CARDAREA do
             if Galdur.run_setup.selected_deck_area == G.I.CARDAREA[j] then
@@ -639,7 +639,7 @@ function generate_deck_preview()
    
 end
 
-function populate_deck_preview(_deck, silent)
+function Galdur.populate_deck_preview(_deck, silent)
     if Galdur.run_setup.selected_deck_area.cards then
         remove_all(Galdur.run_setup.selected_deck_area.cards)
         Galdur.run_setup.selected_deck_area.cards = {}
@@ -651,7 +651,7 @@ function populate_deck_preview(_deck, silent)
     for index = 1, Galdur.run_setup.selected_deck_height do
         local card = Card(Galdur.run_setup.selected_deck_area.T.x+2*G.CARD_W, -2*G.CARD_H, G.CARD_W, G.CARD_H,
             _deck.effect.center, _deck.effect.center, {galdur_back = _deck, deck_select = true})
-        Galdur.run_setup.selected_deck_area_holding:emplace(card)
+        if Galdur.config.animation and not silent then Galdur.run_setup.selected_deck_area_holding:emplace(card) end
         card.sprite_facing = 'back'
         card.facing = 'back'
         card.children.back = Sprite(card.T.x, card.T.y, card.T.w, card.T.h, G.ASSET_ATLAS[_deck.effect.center.atlas or 'centers'], _deck.effect.center.pos)
@@ -664,18 +664,16 @@ function populate_deck_preview(_deck, silent)
             G.sticker_card = card
             card.sticker = get_deck_win_galdur(_deck.effect.center)
         end
-        if silent or not Galdur.config.animation or index < Galdur.run_setup.selected_deck_height/2 then
-            -- Galdur.run_setup.selected_deck_area_holding:remove_card(card)
+        if silent or not Galdur.config.animation then
+            Galdur.run_setup.selected_deck_area:emplace(card)
+        elseif index < Galdur.run_setup.selected_deck_height/2 then
             Galdur.run_setup.selected_deck_area:draw_card_from(Galdur.run_setup.selected_deck_area_holding)
-            -- Galdur.run_setup.selected_deck_area:emplace(card)
         else
             G.E_MANAGER:add_event(Event({
                 trigger = 'immediate',
                 func = (function()
                     play_sound('card1', math.random()*0.2 + 0.9, 0.35)
-                    -- Galdur.run_setup.selected_deck_area_holding:remove_card(card)
-                    Galdur.run_setup.selected_deck_area:draw_card_from(Galdur.run_setup.selected_deck_area_holding)
-                    -- Galdur.run_setup.selected_deck_area:emplace(card)
+                    if Galdur.run_setup.selected_deck_area_holding.cards then Galdur.run_setup.selected_deck_area:draw_card_from(Galdur.run_setup.selected_deck_area_holding) end
                     return true
                 end)
             }), 'galdur')
@@ -684,7 +682,7 @@ function populate_deck_preview(_deck, silent)
 end
 
 -- Chip Tower Functions
-function generate_chip_tower()
+function Galdur.generate_chip_tower()
     if Galdur.run_setup.chip_tower then
         for j=1, #G.I.CARDAREA do
             if Galdur.run_setup.chip_tower == G.I.CARDAREA[j] then
@@ -699,7 +697,7 @@ function generate_chip_tower()
         {type = 'deck', highlight_limit = 0, draw_layers = {'card'}, thin_draw = 1, stake_chips = true})
 end
 
-function populate_chip_tower(_stake)
+function Galdur.populate_chip_tower(_stake, silent)
     if Galdur.run_setup.chip_tower.cards then
         remove_all(Galdur.run_setup.chip_tower.cards)
         Galdur.run_setup.chip_tower.cards = {}
@@ -712,7 +710,7 @@ function populate_chip_tower(_stake)
         local card = Card(Galdur.run_setup.chip_tower.T.x, G.ROOM.T.y, 3.4*14/41, 3.4*14/41,
             Galdur.run_setup.choices.deck.effect.center, Galdur.run_setup.choices.deck.effect.center,
             {hover = #applied_stakes - index, stake = stake_index, stake_chip = true})
-        Galdur.run_setup.chip_tower_holding:emplace(card)
+        if Galdur.config.animation and not silent then Galdur.run_setup.chip_tower_holding:emplace(card) end
         card.facing = 'back'
         card.sprite_facing = 'back'
         card.children.back = get_stake_sprite_in_area(stake_index, 3.4*14/41, Galdur.run_setup.chip_tower)
@@ -722,23 +720,23 @@ function populate_chip_tower(_stake)
         card.children.back.states.drag = card.states.drag
         card.children.back.states.collide.can = true
         card.children.back:set_role({major = card, role_type = 'Glued', draw_major = card})
-        if Galdur.config.animation then
+        if Galdur.config.animation and not silent then
             G.E_MANAGER:add_event(Event({
                 trigger = 'after',
                 delay = 0.02,
                 func = (function()
                     play_sound('chips2', math.random()*0.2 + 0.9, 0.35)
-                    Galdur.run_setup.chip_tower:draw_card_from(Galdur.run_setup.chip_tower_holding)
+                    if Galdur.run_setup.chip_tower.cards then Galdur.run_setup.chip_tower:draw_card_from(Galdur.run_setup.chip_tower_holding) end
                     return true
                 end)
             }), 'galdur')
         else
-            Galdur.run_setup.chip_tower:draw_card_from(Galdur.run_setup.chip_tower_holding)
+            Galdur.run_setup.chip_tower:emplace(card)
         end
     end
 end
 
-function display_chip_tower()
+function Galdur.display_chip_tower()
     return
     {n=G.UIT.C, config = {align = "tm", padding = 0.15}, nodes ={
         {n = G.UIT.C, config = {minh = 5.95, minw = 1.5, maxw = 1.5, colour = G.C.BLACK, r=0.1, align = "bm", padding = 0.15, emboss=0.05}, nodes = {
