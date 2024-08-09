@@ -26,6 +26,7 @@ return {
             ["gald_locked"] = "Locked",
             ["gald_unlock_1"] = "Win with this deck on ",
             ["gald_unlock_and"] = " and ",
+            ["gald_new_page_error"] = "Error when adding page"
         }
     }
 }

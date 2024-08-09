@@ -11,6 +11,7 @@
 -- Definitions
 Galdur = SMODS.current_mod
 Galdur.clean_up_functions = {}
+Galdur.pages_to_add = {}
 Galdur.run_setup = {
     choices = {
         deck = nil,
@@ -415,7 +416,16 @@ end
 -- Main Select Functions
 function G.UIDEF.run_setup_option_new_model(type)
     if not G.PROFILES[G.SETTINGS.profile].Galdur_wins then initial_conversion() end
-
+    
+    for _, args in ipairs(Galdur.pages_to_add) do
+        if not args.definition or localize(args.name) == "ERROR" then
+            sendErrorMessage(localize('gald_new_page_error'), "Galdur")
+        else
+            table.insert(Galdur.run_setup.pages, args)
+        end
+    end
+    Galdur.pages_to_add = {}
+    
     if not G.SAVED_GAME then
         G.SAVED_GAME = get_compressed(G.SETTINGS.profile..'/'..'save.jkr')
         if G.SAVED_GAME ~= nil then G.SAVED_GAME = STR_UNPACK(G.SAVED_GAME) end
@@ -473,14 +483,30 @@ G.FUNCS.deck_select_next = function(e)
     for _, clean_up in pairs(Galdur.clean_up_functions) do
         clean_up()
     end
+    -- Check for function when confirming selection
+    if Galdur.run_setup.pages[Galdur.run_setup.current_page].confirm and type(Galdur.run_setup.pages[Galdur.run_setup.current_page].confirm) == 'function' then
+        Galdur.run_setup.pages[Galdur.run_setup.current_page].confirm()
+    end
 
     Galdur.run_setup.current_page = math.min(math.max(Galdur.run_setup.current_page + e.config.ref_value, 1), #Galdur.run_setup.pages+1)
+
     if Galdur.run_setup.current_page > #Galdur.run_setup.pages then
         if not Galdur.run_setup.choices.seed_select then Galdur.run_setup.choices.seed = nil end
         G.PROFILES[G.SETTINGS.profile].MEMORY.deck = Galdur.run_setup.choices.deck.effect.center.name
         G.PROFILES[G.SETTINGS.profile].MEMORY.stake = Galdur.run_setup.choices.stake
+        for _,page in ipairs(Galdur.run_setup.pages) do
+            if page.pre_start and type(page.pre_start) == 'function' then
+                page.pre_start(Galdur.run_setup.choices)
+            end
+        end
 
         G.FUNCS.start_run(nil, Galdur.run_setup.choices)
+
+        for _,page in ipairs(Galdur.run_setup.pages) do
+            if page.post_start and type(page.post_start) == 'function' then
+                page.post_start(Galdur.run_setup.choices)
+            end
+        end
         return
     elseif Galdur.run_setup.current_page == #Galdur.run_setup.pages then
         Galdur.run_setup.pages.next_button = localize('gald_play')
@@ -537,28 +563,29 @@ function deck_select_page_stake()
     generate_deck_preview()
     populate_deck_preview(Galdur.run_setup.choices.deck, true)
 
-    local chip_tower = 
-    {n=G.UIT.C, config = {align = "tm", padding = 0.15}, nodes ={
-        {n = G.UIT.C, config = {minh = 5.95, minw = 1.5, maxw = 1.5, colour = G.C.BLACK, r=0.1, align = "bm", padding = 0.15, emboss=0.05}, nodes = {
-            {n=G.UIT.R, config={align = "cm"}, nodes={
-                {n = G.UIT.O, config = {object = Galdur.run_setup.chip_tower}}
-            }}
-        }}
-    }}
-
     return 
     {n=G.UIT.ROOT, config={align = "tm", minh = 3.8, colour = G.C.CLEAR, padding=0.1}, nodes={
         {n=G.UIT.C, config = {padding = 0.15}, nodes ={    
             generate_stake_card_areas_ui(),
             create_stake_page_cycle(),
         }},
-        chip_tower,
+        display_chip_tower(),
         selected_deck_preview()  
     }}
 end
 
-table.insert(Galdur.run_setup.pages, {definition = deck_select_page_deck, name = 'gald_select_deck'})
-table.insert(Galdur.run_setup.pages, {definition = deck_select_page_stake, name = 'gald_select_stake'})
+Galdur.add_new_page = function(args)
+    Galdur.pages_to_add[#Galdur.pages_to_add + 1] = args
+end
+
+Galdur.add_new_page({
+    definition = deck_select_page_deck,
+    name = 'gald_select_deck',
+})
+Galdur.add_new_page({
+    definition = deck_select_page_stake,
+    name = 'gald_select_stake'
+})
 
 SMODS.current_mod.config_tab = function()
     return {n = G.UIT.ROOT, config = {r = 0.1, minw = 4, align = "tm", padding = 0.2, colour = G.C.BLACK}, nodes = {
@@ -709,6 +736,17 @@ function populate_chip_tower(_stake)
             Galdur.run_setup.chip_tower:draw_card_from(Galdur.run_setup.chip_tower_holding)
         end
     end
+end
+
+function display_chip_tower()
+    return
+    {n=G.UIT.C, config = {align = "tm", padding = 0.15}, nodes ={
+        {n = G.UIT.C, config = {minh = 5.95, minw = 1.5, maxw = 1.5, colour = G.C.BLACK, r=0.1, align = "bm", padding = 0.15, emboss=0.05}, nodes = {
+            {n=G.UIT.R, config={align = "cm"}, nodes={
+                {n = G.UIT.O, config = {object = Galdur.run_setup.chip_tower}}
+            }}
+        }}
+    }}
 end
 
 function build_stake_chain(end_stake_index, chain)
