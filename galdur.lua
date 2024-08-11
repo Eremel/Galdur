@@ -5,8 +5,8 @@
 --- MOD_AUTHOR: [Eremel_]
 --- MOD_DESCRIPTION: A modification to the run setup screen to ease use.
 --- BADGE_COLOUR: 3FC7EB
---- PRIORITY: -100000
---- VERSION: 1.01f
+--- PRIORITY: -10000
+--- VERSION: 1.01g
 
 -- Definitions
 Galdur = SMODS.current_mod
@@ -447,6 +447,7 @@ function G.UIDEF.run_setup_option_new_model(type)
     Galdur.run_setup.pages.prev_button = ""
     Galdur.run_setup.pages.next_button = localize(Galdur.run_setup.pages[2].name)
 
+    local Taiko_pres = (SMODS.Mods['Taikomochi'] or {}).can_load
     local t =
     {n=G.UIT.ROOT, config={align = "cm", colour = G.C.CLEAR, minh = 6.6, minw = 6}, nodes={
         {n = G.UIT.C, nodes = {
@@ -462,7 +463,7 @@ function G.UIDEF.run_setup_option_new_model(type)
                 }},
                 {n=G.UIT.C, config={align = "cm", minw = 2.2, id = 'run_setup_seed'}, nodes={
                     {n=G.UIT.R, config={align='cr'}, nodes = {create_toggle{col = true, label = localize('k_seeded_run'), label_scale = 0.25, w = 0, scale = 0.7, callback = G.FUNCS.toggle_seeded_run_galdur, ref_table = Galdur.run_setup.choices, ref_value = 'seed_select'}}},
-                    {n=G.UIT.R, config={align='cr'}, nodes = {G.FUNCS.zen_restart_ante and create_toggle{col = true, label = "Zen Mode", label_scale = 0.25, w = 0, scale = 0.7, ref_table = G, ref_value = 'run_zen_mode', active_colour = G.C.BLUE}}}
+                    {n=G.UIT.R, config={align='cr'}, nodes = {Taiko_pres and create_toggle{col = true, label = "Zen Mode", label_scale = 0.25, w = 0, scale = 0.7, ref_table = G, ref_value = 'run_zen_mode', active_colour = G.C.BLUE} or nil}}
                 }},
                 {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {minw = 2.5, minh = 0.8, maxh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'deck_select_next', colour = G.C.BLUE, align = "cm", emboss = 0.1}, nodes = {
                     {n=G.UIT.T, config={ref_table = Galdur.run_setup.pages, ref_value = 'next_button', scale = 0.4, colour = G.C.WHITE}}
@@ -854,38 +855,6 @@ function spit(message)
 end
 
 -- Function Overrides
-function get_joker_win_sticker(_center, index)
-    if G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key] and
-    G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins then 
-        local _w = 0
-        for k, v in pairs(G.PROFILES[G.SETTINGS.profile].joker_usage[_center.key].wins) do
-        _w = math.max(k, _w)
-        end
-        if index then return _w end
-        if _w > 0 then 
-            if _w > 8 then
-                return G.sticker_map[G.P_CENTER_POOLS.Stake[_w].key]
-            end
-            return G.sticker_map[_w]
-        end
-    end
-    if index then return 0 end
-end
-
-function get_deck_win_sticker(_center)
-    if G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key] and
-  G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key].wins then 
-        local _w = nil
-        for index, _ in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key].wins) do
-            if (G.P_CENTER_POOLS[index] and G.P_CENTER_POOLS[index].stake_level or 0) > (_w and G.P_CENTER_POOLS[_w].stake_level or 0) then
-                _w = index
-            end
-        end
-        if _w then 
-            return G.sticker_map[_w]
-        end
-    end
-end
 
 function get_deck_win_galdur(_center, raw)
     if G.PROFILES[G.SETTINGS.profile].Galdur_wins[_center.key] then 
@@ -905,6 +874,7 @@ end
 function G.FUNCS.toggle_seeded_run_galdur(bool, e)
     if not e then return end
     local current_selector_page = e.UIBox:get_UIE_by_ID('seed_input')
+    local seed_unlocker_pres = (SMODS.Mods['SeedUnlocker'] or {}).can_load
     if not current_selector_page then return end
     current_selector_page.config.object:remove()
     current_selector_page.config.object = bool and UIBox{
@@ -913,7 +883,7 @@ function G.FUNCS.toggle_seeded_run_galdur(bool, e)
             simple_text_container('ml_disabled_seed',{colour = G.C.UI.TEXT_LIGHT, scale = 0.26, shadow = true}),
           }},
           {n=G.UIT.C, config={align = "cm", minw = 0.1}, nodes={
-            create_text_input({max_length = 8, all_caps = true, ref_table = Galdur.run_setup.choices, ref_value = 'seed', prompt_text = localize('k_enter_seed')}),
+            create_text_input({max_length = seed_unlocker_pres and 2500 or 8, all_caps = true, ref_table = Galdur.run_setup.choices, ref_value = 'seed', prompt_text = localize('k_enter_seed')}),
             {n=G.UIT.C, config={align = "cm", minw = 0.1}, nodes={}},
             UIBox_button({label = localize('ml_paste_seed'),minw = 1, minh = 0.6, button = 'paste_seed', colour = G.C.BLUE, scale = 0.3, col = true})
           }}
