@@ -5,7 +5,7 @@
 --- MOD_AUTHOR: [Eremel_]
 --- MOD_DESCRIPTION: A modification to the run setup screen to ease use.
 --- BADGE_COLOUR: 3FC7EB
---- PRIORITY: -10
+--- PRIORITY: -100000
 --- VERSION: 1.01f
 
 -- Definitions
@@ -25,7 +25,7 @@ Galdur.run_setup = {
 }
 Galdur.use = true
 Galdur.animation = true
-Galdur.test_mode = false
+Galdur.test_mode = true
 Galdur.hover_index = 0
 G.E_MANAGER.queues.galdur = {}
 
@@ -128,6 +128,8 @@ function Card:click()
         Galdur.run_setup.choices.stake = self.params.stake
         G.E_MANAGER:clear_queue('galdur')
         Galdur.populate_chip_tower(self.params.stake)
+        spit("Order: "..G.P_CENTER_POOLS.Stake[self.params.stake].order)
+        spit("Stake Level: "..G.P_CENTER_POOLS.Stake[self.params.stake].stake_level)
     else
         card_click_ref(self)
     end
@@ -168,7 +170,7 @@ G.FUNCS.exit_overlay_menu = function()
         G.E_MANAGER:clear_queue('galdur')
     end
     exit_overlay()
-  end
+end
 
 local deck_win = set_deck_win
 function set_deck_win()
@@ -206,7 +208,7 @@ function generate_deck_card_areas_ui()
         local row = {n = G.UIT.R, config = {colour = G.C.LIGHT}, nodes = {}}
         for j=1, 6 do
             if count > #G.P_CENTER_POOLS.Back then return end
-            table.insert(row.nodes, {n = G.UIT.O, config = {object = Galdur.run_setup.deck_select_areas[count], r = 0.1, id = "deck_select_"..count, outline_colour = G.C.YELLOW}})
+            table.insert(row.nodes, {n = G.UIT.O, config = {object = Galdur.run_setup.deck_select_areas[count], r = 0.1, id = "deck_select_"..count}})
             count = count + 1
         end
         table.insert(deck_ui_element, row)
@@ -466,8 +468,9 @@ function G.UIDEF.run_setup_option_new_model(type)
                     {n=G.UIT.T, config={ref_table = Galdur.run_setup.pages, ref_value = 'next_button', scale = 0.4, colour = G.C.WHITE}}
                 }}}},
                 {n=G.UIT.C, config={minw = 0.5}},
-                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {maxw = 2.5, minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'quick_start', colour = G.C.ORANGE, align = "cm", emboss = 0.1}, nodes = {
-                    {n=G.UIT.T, config={text = '[NYI]', scale = 0.4, colour = G.C.WHITE}}
+                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {maxw = 2.5, minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'quick_start', colour = G.C.ORANGE, align = "cm", emboss = 0.1,
+                    tooltip = {text = {Galdur.run_setup.choices.deck:get_name(), localize({type='name_text', set='Stake', key=G.P_CENTER_POOLS.Stake[Galdur.run_setup.choices.stake].key})}} }, nodes = {
+                    {n=G.UIT.T, config={text = 'Quick Start', scale = 0.4, colour = G.C.WHITE}}
                 }}}}
             }}
         }}
@@ -536,6 +539,10 @@ G.FUNCS.deck_select_next = function(e)
 end
 
 G.FUNCS.quick_start = function(e)
+    G.GAME.modifiers.scaling = G.GAME.modifiers.scaling and G.GAME.modifiers.scaling + 1 or 4
+    for i=1, 9 do
+        spit(i.." : "..SMODS.get_blind_amount(i))
+    end
     sendDebugMessage("NYI - This button doesn't do anything")
 end
 
@@ -705,7 +712,7 @@ function Galdur.populate_chip_tower(_stake, silent)
         Galdur.run_setup.chip_tower_holding.cards = {}
     end
     if _stake == 0 then _stake = 1 end
-    local applied_stakes = order_stake_chain(build_stake_chain(_stake), _stake)
+    local applied_stakes = order_stake_chain(build_stake_chain(G.P_CENTER_POOLS.Stake[_stake]), _stake)
     for index, stake_index in ipairs(applied_stakes) do
         local card = Card(Galdur.run_setup.chip_tower.T.x, G.ROOM.T.y, 3.4*14/41, 3.4*14/41,
             Galdur.run_setup.choices.deck.effect.center, Galdur.run_setup.choices.deck.effect.center,
@@ -747,18 +754,31 @@ function Galdur.display_chip_tower()
     }}
 end
 
-function build_stake_chain(end_stake_index, chain)
-    local stake_chain = chain or {}
-    stake_chain[end_stake_index] = end_stake_index
-    if end_stake_index > 1 then
-        local next_stakes = G.P_CENTER_POOLS.Stake[end_stake_index].applied_stakes
-        for _,v in ipairs(next_stakes) do
-            stake_chain = build_stake_chain(G.P_STAKES['stake_'..v].stake_level, stake_chain)
-        end
-        return stake_chain
-    else
-        return stake_chain
+-- function build_stake_chain(end_stake_index, chain)
+--     local stake_chain = chain or {}
+--     stake_chain[end_stake_index] = end_stake_index
+--     if end_stake_index > 1 then
+--         local next_stakes = G.P_CENTER_POOLS.Stake[end_stake_index].applied_stakes
+--         for _,v in ipairs(next_stakes) do
+--             stake_chain = build_stake_chain(G.P_STAKES['stake_'..v].stake_level, stake_chain)
+--         end
+--         return stake_chain
+--     else
+--         return stake_chain
+--     end
+-- end
+
+function build_stake_chain(stake, chain)
+    if not chain then chain = {} end
+    chain[stake.order] = stake.order
+    if not stake.applied_stakes then
+        return
     end
+    for _, s in pairs(stake.applied_stakes) do
+        build_stake_chain(G.P_STAKES['stake_'..s], chain)
+    end
+    
+    return chain
 end
 
 function order_stake_chain(stake_chain, _stake)
@@ -852,10 +872,25 @@ function get_joker_win_sticker(_center, index)
     if index then return 0 end
 end
 
+function get_deck_win_sticker(_center)
+    if G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key] and
+  G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key].wins then 
+        local _w = nil
+        for index, _ in pairs(G.PROFILES[G.SETTINGS.profile].deck_usage[_center.key].wins) do
+            if (G.P_CENTER_POOLS[index] and G.P_CENTER_POOLS[index].stake_level or 0) > (_w and G.P_CENTER_POOLS[_w].stake_level or 0) then
+                _w = index
+            end
+        end
+        if _w then 
+            return G.sticker_map[_w]
+        end
+    end
+end
+
 function get_deck_win_galdur(_center, raw)
     if G.PROFILES[G.SETTINGS.profile].Galdur_wins[_center.key] then 
         local _w = nil
-        for key, v in pairs(G.PROFILES[G.SETTINGS.profile].Galdur_wins[_center.key]) do
+        for key, _ in pairs(G.PROFILES[G.SETTINGS.profile].Galdur_wins[_center.key]) do
             if (G.P_STAKES[key] and G.P_STAKES[key].stake_level or 0) > (_w and G.P_STAKES[_w].stake_level or 0) then
                 _w = key
             end
@@ -892,57 +927,57 @@ function G.FUNCS.toggle_button(e)
     local ref = e.config.ref_table
     ref.ref_table[ref.ref_value] = not ref.ref_table[ref.ref_value]
     if e.config.toggle_callback then 
-      e.config.toggle_callback(ref.ref_table[ref.ref_value], e) -- pass the node it's from too
+        e.config.toggle_callback(ref.ref_table[ref.ref_value], e) -- pass the node it's from too
     end
 end
 
 -- Stake injection changes - TODO: import into steamodded main with other stake changes
-SMODS.Stake.inject = function(self)
-    if not self.injected then
-        -- Inject stake in the correct spot
-        self.count = #G.P_CENTER_POOLS[self.set] + 1
-        self.order = self.count
-        if self.above_stake then
-            self.order = G.P_STAKES[self.class_prefix .. "_" .. self.above_stake].stake_level + 1
-        end
-        self.stake_level = self.order
-        for _, v in pairs(G.P_STAKES) do
-            if v.stake_level >= self.stake_level then
-                v.stake_level = v.stake_level + 1
-                v.order = v.stake_level
-            end
-        end
-        G.P_STAKES[self.key] = self
-        -- Sticker sprites (stake_ prefix is removed for vanilla compatiblity)
-        if self.sticker_pos ~= nil then
-            G.shared_stickers[self.key:sub(7)] = Sprite(0, 0, G.CARD_W, G.CARD_H,
-                G.ASSET_ATLAS[self.sticker_atlas] or G.ASSET_ATLAS["stickers"], self.sticker_pos)
-            G.sticker_map[self.key] = self.key:sub(7)
-        else
-            G.sticker_map[self.key] = nil
-        end
-    else
-        G.P_STAKES[self.key] = self
-    end
-    self.injected = true
-    -- should only need to do this once per injection routine
-    G.P_CENTER_POOLS[self.set] = {}
-    for _, v in pairs(G.P_STAKES) do
-        SMODS.insert_pool(G.P_CENTER_POOLS[self.set], v)
-    end
-    table.sort(G.P_CENTER_POOLS[self.set], function(a, b) return a.stake_level < b.stake_level end)
-    G.C.STAKES = {}
-    for i = 1, #G.P_CENTER_POOLS[self.set] do
-        G.C.STAKES[i] = G.P_CENTER_POOLS[self.set][i].colour or G.C.WHITE
-    end
-end
+-- SMODS.Stake.inject = function(self)
+--     if not self.injected then
+--         -- Inject stake in the correct spot
+--         self.count = #G.P_CENTER_POOLS[self.set] + 1
+--         self.order = self.count
+--         if self.above_stake then
+--             self.order = G.P_STAKES[self.class_prefix .. "_" .. self.above_stake].stake_level + 1
+--         end
+--         self.stake_level = self.order
+--         for _, v in pairs(G.P_STAKES) do
+--             if v.stake_level >= self.stake_level then
+--                 v.stake_level = v.stake_level + 1
+--                 v.order = v.stake_level
+--             end
+--         end
+--         G.P_STAKES[self.key] = self
+--         -- Sticker sprites (stake_ prefix is removed for vanilla compatiblity)
+--         if self.sticker_pos ~= nil then
+--             G.shared_stickers[self.key:sub(7)] = Sprite(0, 0, G.CARD_W, G.CARD_H,
+--             G.ASSET_ATLAS[self.sticker_atlas] or G.ASSET_ATLAS["stickers"], self.sticker_pos)
+--             G.sticker_map[self.key] = self.key:sub(7)
+--         else
+--             G.sticker_map[self.key] = nil
+--         end
+--     else
+--         G.P_STAKES[self.key] = self
+--     end
+--     self.injected = true
+--     -- should only need to do this once per injection routine
+--     G.P_CENTER_POOLS[self.set] = {}
+--     for _, v in pairs(G.P_STAKES) do
+--         SMODS.insert_pool(G.P_CENTER_POOLS[self.set], v)
+--     end
+--     table.sort(G.P_CENTER_POOLS[self.set], function(a, b) return a.stake_level < b.stake_level end)
+--     G.C.STAKES = {}
+--     for i = 1, #G.P_CENTER_POOLS[self.set] do
+--         G.C.STAKES[i] = G.P_CENTER_POOLS[self.set][i].colour or G.C.WHITE
+--     end
+-- end
 
 -- Testing objects
 if Galdur.test_mode then
     for i=1, 10 do
         SMODS.Stake({
             key = "test_"..i,
-            applied_stakes = {i==1 and 'white' or "galdur_test_"..(i-1)},
+            applied_stakes = i==1 and {} or {"galdur_test_"..(i-1)},
             above_stake = (i==1 and 'gold' or "galdur_test_"..(i-1)),
             loc_txt = {description = {
                 name = "Test Stake "..i,
@@ -970,7 +1005,7 @@ if Galdur.test_mode then
 
     SMODS.Stake({
         key = "test_stake",
-        applied_stakes = {"galdur_test_10", "cry_brown"},
+        applied_stakes = {"cry_brown", "galdur_test_10"},
         above_stake = ('galdur_test_10'),
         pos = { x = 4, y = 1 },
         loc_txt = {description = {
