@@ -27,6 +27,7 @@ return {
             ["gald_locked"] = "锁定",
             ["gald_unlock_1"] = "赢下",
             ["gald_unlock_and"] = "和",
+            ["gald_new_page_error"] = "添加页面时出错"
         }
     }
 }

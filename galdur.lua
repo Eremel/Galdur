@@ -7,6 +7,7 @@
 --- BADGE_COLOUR: 3FC7EB
 --- PRIORITY: -10000
 --- VERSION: 1.01h
+--- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-0812d]
 
 -- Definitions
 Galdur = SMODS.current_mod
@@ -23,6 +24,7 @@ Galdur.run_setup = {
     pages = {},
     selected_deck_height = 52,
 }
+Galdur.quick_start = {}
 Galdur.test_mode = false
 Galdur.hover_index = 0
 G.E_MANAGER.queues.galdur = {}
@@ -428,8 +430,10 @@ function G.UIDEF.run_setup_option_new_model(type)
     Galdur.run_setup.choices.deck = Back(get_deck_from_name(G.PROFILES[G.SETTINGS.profile].MEMORY.deck))
     G.PROFILES[G.SETTINGS.profile].MEMORY.stake = G.PROFILES[G.SETTINGS.profile].MEMORY.stake or 1
     Galdur.run_setup.choices.stake = G.PROFILES[G.SETTINGS.profile].MEMORY.stake
+    Galdur.quick_start.deck = Galdur.run_setup.choices.deck
+    Galdur.quick_start.stake = G.PROFILES[G.SETTINGS.profile].MEMORY.stake
     Galdur.run_setup.choices.seed = ""
-  
+    
     
     generate_deck_card_areas()
     generate_stake_card_areas()
@@ -462,7 +466,7 @@ function G.UIDEF.run_setup_option_new_model(type)
                 {n=G.UIT.C, config={minw = 0.5}},
                 {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {maxw = 2.5, minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'quick_start', colour = G.C.ORANGE, align = "cm", emboss = 0.1,
                     tooltip = {text = {Galdur.run_setup.choices.deck:get_name(), localize({type='name_text', set='Stake', key=G.P_CENTER_POOLS.Stake[Galdur.run_setup.choices.stake].key})}} }, nodes = {
-                    {n=G.UIT.T, config={text = 'Quick Start', scale = 0.4, colour = G.C.WHITE}}
+                    {n=G.UIT.T, config={text = localize('gald_quick_start'), scale = 0.4, colour = G.C.WHITE}}
                 }}}}
             }}
         }}
@@ -482,22 +486,7 @@ G.FUNCS.deck_select_next = function(e)
     Galdur.run_setup.current_page = math.min(math.max(Galdur.run_setup.current_page + e.config.ref_value, 1), #Galdur.run_setup.pages+1)
 
     if Galdur.run_setup.current_page > #Galdur.run_setup.pages then
-        if not Galdur.run_setup.choices.seed_select then Galdur.run_setup.choices.seed = nil end
-        G.PROFILES[G.SETTINGS.profile].MEMORY.deck = Galdur.run_setup.choices.deck.effect.center.name
-        G.PROFILES[G.SETTINGS.profile].MEMORY.stake = Galdur.run_setup.choices.stake
-        for _,page in ipairs(Galdur.run_setup.pages) do
-            if page.pre_start and type(page.pre_start) == 'function' then
-                page.pre_start(Galdur.run_setup.choices)
-            end
-        end
-
-        G.FUNCS.start_run(nil, Galdur.run_setup.choices)
-
-        for _,page in ipairs(Galdur.run_setup.pages) do
-            if page.post_start and type(page.post_start) == 'function' then
-                page.post_start(Galdur.run_setup.choices)
-            end
-        end
+        Galdur.start_run()
         return
     elseif Galdur.run_setup.current_page == #Galdur.run_setup.pages then
         Galdur.run_setup.pages.next_button = localize('gald_play')
@@ -526,8 +515,32 @@ G.FUNCS.deck_select_next = function(e)
     current_selector_page.UIBox:recalculate()
 end
 
+function Galdur.start_run(_quick_start)
+    if not Galdur.run_setup.choices.seed_select then Galdur.run_setup.choices.seed = nil end
+    if _quick_start then
+        Galdur.run_setup.choices.deck = Galdur.quick_start.deck
+        Galdur.run_setup.choices.stake = Galdur.quick_start.stake
+    end
+    G.PROFILES[G.SETTINGS.profile].MEMORY.deck = Galdur.run_setup.choices.deck.effect.center.name
+    G.PROFILES[G.SETTINGS.profile].MEMORY.stake = Galdur.run_setup.choices.stake
+    for _,page in ipairs(Galdur.run_setup.pages) do
+        if page.pre_start and type(page.pre_start) == 'function' then
+            page.pre_start(Galdur.run_setup.choices)
+        end
+    end
+
+    G.FUNCS.start_run(nil, Galdur.run_setup.choices)
+
+    for _,page in ipairs(Galdur.run_setup.pages) do
+        if page.post_start and type(page.post_start) == 'function' then
+            page.post_start(Galdur.run_setup.choices)
+        end
+    end
+end
+
 G.FUNCS.quick_start = function(e)
-    sendDebugMessage("NYI - This button doesn't do anything")
+    Galdur.spit("NYI - This button doesn't do anything")
+    Galdur.start_run(true)
 end
 
 function deck_select_page_deck()
@@ -791,7 +804,7 @@ function create_stake_unlock_message(stake)
     }
 end
 
-function spit(message)
+function Galdur.spit(message)
     sendDebugMessage(message, "Galdur")
 end
 
