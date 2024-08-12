@@ -861,7 +861,11 @@ function G.FUNCS.toggle_seeded_run_galdur(bool, e)
             simple_text_container('ml_disabled_seed',{colour = G.C.UI.TEXT_LIGHT, scale = 0.26, shadow = true}),
           }},
           {n=G.UIT.C, config={align = "cm", minw = 0.1}, nodes={
-            create_text_input({max_length = seed_unlocker_pres and 2500 or 8, all_caps = true, ref_table = Galdur.run_setup.choices, ref_value = 'seed', prompt_text = localize('k_enter_seed')}),
+            {n=G.UIT.C, config={maxw = 3.1}, nodes = {
+                seed_unlocker_pres and
+                create_text_input({max_length = 2500, extended_corpus = true, ref_table = Galdur.run_setup.choices, ref_value = 'seed', prompt_text = localize('k_enter_seed')})
+             or create_text_input({max_length = 8, all_caps = true, ref_table = Galdur.run_setup.choices, ref_value = 'seed', prompt_text = localize('k_enter_seed')}),
+            }},
             {n=G.UIT.C, config={align = "cm", minw = 0.1}, nodes={}},
             UIBox_button({label = localize('ml_paste_seed'),minw = 1, minh = 0.6, button = 'paste_seed', colour = G.C.BLUE, scale = 0.3, col = true})
           }}
