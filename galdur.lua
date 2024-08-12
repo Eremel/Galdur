@@ -111,7 +111,7 @@ function Card:click()
     if self.deck_select_position and self.config.center.unlocked then
         Galdur.run_setup.selected_deck_from = self.area.config.index
         Galdur.run_setup.choices.deck = Back(self.config.center)
-        Galdur.run_setup.choices.stake = get_deck_win_galdur(Galdur.run_setup.choices.deck.effect.center, true)+1
+        Galdur.run_setup.choices.stake = get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key)
         G.E_MANAGER:clear_queue('galdur')
         Galdur.populate_deck_preview(Galdur.run_setup.choices.deck)
 
@@ -238,7 +238,7 @@ function populate_deck_card_areas(page)
             if not Galdur.run_setup.deck_select_areas[i].cards then Galdur.run_setup.deck_select_areas[i].cards = {} end
             Galdur.run_setup.deck_select_areas[i]:emplace(card)
             if index == card_number then
-                card.sticker = get_deck_win_galdur(G.P_CENTER_POOLS.Back[count])
+                card.sticker = get_deck_win_sticker(G.P_CENTER_POOLS.Back[count])
                 card.deck_select_position = {page = page, count = i}
             end
         end
@@ -539,7 +539,11 @@ G.FUNCS.deck_select_next = function(e)
 end
 
 G.FUNCS.quick_start = function(e)
-    convert_save_data()
+    -- convert_save_data()
+    spit(get_deck_win_stake('b_red'))
+    spit(get_deck_win_stake('b_blue'))
+    spit(get_deck_win_stake('b_zodiac'))
+    spit(get_deck_win_stake())
     -- G.GAME.modifiers.scaling = G.GAME.modifiers.scaling and G.GAME.modifiers.scaling + 1 or 1
     -- spit("Scaling "..G.GAME.modifiers.scaling)
     -- for i=1, 9 do
@@ -567,7 +571,7 @@ end
 function deck_select_page_stake()
     generate_stake_card_areas()
     Galdur.generate_chip_tower()
-    Galdur.populate_chip_tower(math.min(get_deck_win_galdur(Galdur.run_setup.choices.deck.effect.center, true)+1, #G.P_CENTER_POOLS.Stake))
+    Galdur.populate_chip_tower(get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key))
 
     Galdur.generate_deck_preview()
     Galdur.populate_deck_preview(Galdur.run_setup.choices.deck, true)
@@ -671,7 +675,7 @@ function Galdur.populate_deck_preview(_deck, silent)
         card.children.back:set_role({major = card, role_type = 'Glued', draw_major = card})
         if index == Galdur.run_setup.selected_deck_height then
             G.sticker_card = card
-            card.sticker = get_deck_win_galdur(_deck.effect.center)
+            card.sticker = get_deck_win_sticker(_deck.effect.center)
         end
         if silent or not Galdur.config.animation then
             Galdur.run_setup.selected_deck_area:emplace(card)
