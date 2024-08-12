@@ -62,17 +62,6 @@ payload = '''
 local selected_back = saveTable and saveTable.BACK.name or (args.challenge and args.challenge.deck and args.challenge.deck.type) or (args.deck and args.deck.name) or (self.GAME.viewed_back and self.GAME.viewed_back.name) or self.GAME.selected_back and self.GAME.selected_back.name or 'Red Deck'
 '''
 
-# Modify deck win save
-# set_deck_win()
-[[patches]]
-[patches.pattern]
-target = 'functions/misc_functions.lua'
-pattern = '''G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins[i] = (G.PROFILES[G.SETTINGS.profile].deck_usage[deck_key].wins[i] or 1)'''
-position = 'at'
-match_indent = true
-payload = '''
-'''
-
 # Cryptid compat
 # Card:draw()
 [[patches]]

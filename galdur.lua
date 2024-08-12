@@ -172,15 +172,15 @@ G.FUNCS.exit_overlay_menu = function()
     exit_overlay()
 end
 
-local deck_win = set_deck_win
-function set_deck_win()
-    if G.GAME.selected_back and G.GAME.selected_back.effect and G.GAME.selected_back.effect.center and G.GAME.selected_back.effect.center.key then
-        local deck_key = G.GAME.selected_back.effect.center.key
-        if not G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key] then G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key] = {} end
-        G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key][G.P_CENTER_POOLS.Stake[G.GAME.stake].key] = (G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key][G.P_CENTER_POOLS.Stake[G.GAME.stake].key] or 0) + 1
-    end
-    deck_win()
-end
+-- local deck_win = set_deck_win
+-- function set_deck_win()
+--     if G.GAME.selected_back and G.GAME.selected_back.effect and G.GAME.selected_back.effect.center and G.GAME.selected_back.effect.center.key then
+--         local deck_key = G.GAME.selected_back.effect.center.key
+--         if not G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key] then G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key] = {} end
+--         G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key][G.P_CENTER_POOLS.Stake[G.GAME.stake].key] = (G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key][G.P_CENTER_POOLS.Stake[G.GAME.stake].key] or 0) + 1
+--     end
+--     deck_win()
+-- end
 
   -- Deck Selection Functions
 function generate_deck_card_areas()
@@ -238,7 +238,6 @@ function populate_deck_card_areas(page)
             if not Galdur.run_setup.deck_select_areas[i].cards then Galdur.run_setup.deck_select_areas[i].cards = {} end
             Galdur.run_setup.deck_select_areas[i]:emplace(card)
             if index == card_number then
-                G.sticker_card = card
                 card.sticker = get_deck_win_galdur(G.P_CENTER_POOLS.Back[count])
                 card.deck_select_position = {page = page, count = i}
             end
@@ -540,11 +539,13 @@ G.FUNCS.deck_select_next = function(e)
 end
 
 G.FUNCS.quick_start = function(e)
-    G.GAME.modifiers.scaling = G.GAME.modifiers.scaling and G.GAME.modifiers.scaling + 1 or 4
-    for i=1, 9 do
-        spit(i.." : "..SMODS.get_blind_amount(i))
-    end
-    sendDebugMessage("NYI - This button doesn't do anything")
+    convert_save_data()
+    -- G.GAME.modifiers.scaling = G.GAME.modifiers.scaling and G.GAME.modifiers.scaling + 1 or 1
+    -- spit("Scaling "..G.GAME.modifiers.scaling)
+    -- for i=1, 9 do
+    --     spit(i.." : "..SMODS.get_blind_amount(i))
+    -- end
+    -- sendDebugMessage("NYI - This button doesn't do anything")
 end
 
 function deck_select_page_deck()
@@ -713,7 +714,7 @@ function Galdur.populate_chip_tower(_stake, silent)
         Galdur.run_setup.chip_tower_holding.cards = {}
     end
     if _stake == 0 then _stake = 1 end
-    local applied_stakes = order_stake_chain(build_stake_chain(G.P_CENTER_POOLS.Stake[_stake]), _stake)
+    local applied_stakes = order_stake_chain(SMODS.build_stake_chain(G.P_CENTER_POOLS.Stake[_stake]), _stake)
     for index, stake_index in ipairs(applied_stakes) do
         local card = Card(Galdur.run_setup.chip_tower.T.x, G.ROOM.T.y, 3.4*14/41, 3.4*14/41,
             Galdur.run_setup.choices.deck.effect.center, Galdur.run_setup.choices.deck.effect.center,
@@ -753,33 +754,6 @@ function Galdur.display_chip_tower()
             }}
         }}
     }}
-end
-
--- function build_stake_chain(end_stake_index, chain)
---     local stake_chain = chain or {}
---     stake_chain[end_stake_index] = end_stake_index
---     if end_stake_index > 1 then
---         local next_stakes = G.P_CENTER_POOLS.Stake[end_stake_index].applied_stakes
---         for _,v in ipairs(next_stakes) do
---             stake_chain = build_stake_chain(G.P_STAKES['stake_'..v].stake_level, stake_chain)
---         end
---         return stake_chain
---     else
---         return stake_chain
---     end
--- end
-
-function build_stake_chain(stake, chain)
-    if not chain then chain = {} end
-    chain[stake.order] = stake.order
-    if not stake.applied_stakes then
-        return
-    end
-    for _, s in pairs(stake.applied_stakes) do
-        build_stake_chain(G.P_STAKES['stake_'..s], chain)
-    end
-    
-    return chain
 end
 
 function order_stake_chain(stake_chain, _stake)
