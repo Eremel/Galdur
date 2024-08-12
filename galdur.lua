@@ -6,7 +6,7 @@
 --- MOD_DESCRIPTION: A modification to the run setup screen to ease use.
 --- BADGE_COLOUR: 3FC7EB
 --- PRIORITY: -10000
---- VERSION: 1.01g
+--- VERSION: 1.01h
 
 -- Definitions
 Galdur = SMODS.current_mod
@@ -23,9 +23,7 @@ Galdur.run_setup = {
     pages = {},
     selected_deck_height = 52,
 }
-Galdur.use = true
-Galdur.animation = true
-Galdur.test_mode = true
+Galdur.test_mode = false
 Galdur.hover_index = 0
 G.E_MANAGER.queues.galdur = {}
 
@@ -128,8 +126,6 @@ function Card:click()
         Galdur.run_setup.choices.stake = self.params.stake
         G.E_MANAGER:clear_queue('galdur')
         Galdur.populate_chip_tower(self.params.stake)
-        spit("Order: "..G.P_CENTER_POOLS.Stake[self.params.stake].order)
-        spit("Stake Level: "..G.P_CENTER_POOLS.Stake[self.params.stake].stake_level)
     else
         card_click_ref(self)
     end
@@ -389,22 +385,20 @@ end
 
 function create_stake_page_cycle()
     local options = {}
-    local cycle
-    
-        local total_pages = math.ceil(#G.P_CENTER_POOLS.Stake / 24)
-        for i=1, total_pages do
-            table.insert(options, localize('k_page')..' '..i..' / '..total_pages)
-        end
-        cycle = create_option_cycle({
-            options = options,
-            w = 4.5,
-            cycle_shoulders = true,
-            opt_callback = 'change_stake_page',
-            focus_args = { snap_to = true, nav = 'wide' },
-            current_option = 1,
-            colour = G.C.RED,
-            no_pips = true
-        })
+    local total_pages = math.ceil(#G.P_CENTER_POOLS.Stake / 24)
+    for i=1, total_pages do
+        table.insert(options, localize('k_page')..' '..i..' / '..total_pages)
+    end
+    local cycle = create_option_cycle({
+        options = options,
+        w = 4.5,
+        cycle_shoulders = true,
+        opt_callback = 'change_stake_page',
+        focus_args = { snap_to = true, nav = 'wide' },
+        current_option = 1,
+        colour = G.C.RED,
+        no_pips = true
+    })
     
     return {n = G.UIT.R, config = {align = "cm"}, nodes = {cycle}}
 end
@@ -416,9 +410,7 @@ end
 
 -- Main Select Functions
 function G.UIDEF.run_setup_option_new_model(type)
-    if not G.PROFILES[G.SETTINGS.profile].Galdur_wins then initial_conversion() end
-    
-    for _, args in ipairs(Galdur.pages_to_add) do
+     for _, args in ipairs(Galdur.pages_to_add) do
         if not args.definition or localize(args.name) == "ERROR" then
             sendErrorMessage(localize('gald_new_page_error'), "Galdur")
         else
@@ -475,10 +467,6 @@ function G.UIDEF.run_setup_option_new_model(type)
             }}
         }}
     }}
-    -- if G.OVERLAY_MENU then 
-    --     local seed_toggle = G.OVERLAY_MENU:get_UIE_by_ID('run_setup_seed')
-    --     if seed_toggle then G.FUNCS.toggle_seeded_run(seed_toggle, t) end
-    -- end
     return t
 end
 
@@ -539,17 +527,7 @@ G.FUNCS.deck_select_next = function(e)
 end
 
 G.FUNCS.quick_start = function(e)
-    -- convert_save_data()
-    spit(get_deck_win_stake('b_red'))
-    spit(get_deck_win_stake('b_blue'))
-    spit(get_deck_win_stake('b_zodiac'))
-    spit(get_deck_win_stake())
-    -- G.GAME.modifiers.scaling = G.GAME.modifiers.scaling and G.GAME.modifiers.scaling + 1 or 1
-    -- spit("Scaling "..G.GAME.modifiers.scaling)
-    -- for i=1, 9 do
-    --     spit(i.." : "..SMODS.get_blind_amount(i))
-    -- end
-    -- sendDebugMessage("NYI - This button doesn't do anything")
+    sendDebugMessage("NYI - This button doesn't do anything")
 end
 
 function deck_select_page_deck()
@@ -813,42 +791,11 @@ function create_stake_unlock_message(stake)
     }
 end
 
-function initial_conversion()
-    spit("Creating new save data")
-    delay(0.4)
-    local old_data = G.PROFILES[G.SETTINGS.profile].deck_usage
-    local new_data = {}
-    for deck_key, deck_info in pairs(old_data) do
-        new_data[deck_key] = {}
-        for index, number in pairs(deck_info.wins) do
-            new_data[deck_key][G.P_CENTER_POOLS.Stake[index].key] = number
-        end
-    end
-    G.PROFILES[G.SETTINGS.profile].Galdur_wins = new_data
-    spit("Done!")
-end
-
 function spit(message)
     sendDebugMessage(message, "Galdur")
 end
 
 -- Function Overrides
-
-function get_deck_win_galdur(_center, raw)
-    if G.PROFILES[G.SETTINGS.profile].Galdur_wins[_center.key] then 
-        local _w = nil
-        for key, _ in pairs(G.PROFILES[G.SETTINGS.profile].Galdur_wins[_center.key]) do
-            if (G.P_STAKES[key] and G.P_STAKES[key].stake_level or 0) > (_w and G.P_STAKES[_w].stake_level or 0) then
-                _w = key
-            end
-        end
-        if _w then 
-            return raw and G.P_STAKES[_w].stake_level or G.sticker_map[_w]
-        end
-    end
-    if raw then return 0 end
-end
-
 function G.FUNCS.toggle_seeded_run_galdur(bool, e)
     if not e then return end
     local current_selector_page = e.UIBox:get_UIE_by_ID('seed_input')
@@ -882,47 +829,6 @@ function G.FUNCS.toggle_button(e)
         e.config.toggle_callback(ref.ref_table[ref.ref_value], e) -- pass the node it's from too
     end
 end
-
--- Stake injection changes - TODO: import into steamodded main with other stake changes
--- SMODS.Stake.inject = function(self)
---     if not self.injected then
---         -- Inject stake in the correct spot
---         self.count = #G.P_CENTER_POOLS[self.set] + 1
---         self.order = self.count
---         if self.above_stake then
---             self.order = G.P_STAKES[self.class_prefix .. "_" .. self.above_stake].stake_level + 1
---         end
---         self.stake_level = self.order
---         for _, v in pairs(G.P_STAKES) do
---             if v.stake_level >= self.stake_level then
---                 v.stake_level = v.stake_level + 1
---                 v.order = v.stake_level
---             end
---         end
---         G.P_STAKES[self.key] = self
---         -- Sticker sprites (stake_ prefix is removed for vanilla compatiblity)
---         if self.sticker_pos ~= nil then
---             G.shared_stickers[self.key:sub(7)] = Sprite(0, 0, G.CARD_W, G.CARD_H,
---             G.ASSET_ATLAS[self.sticker_atlas] or G.ASSET_ATLAS["stickers"], self.sticker_pos)
---             G.sticker_map[self.key] = self.key:sub(7)
---         else
---             G.sticker_map[self.key] = nil
---         end
---     else
---         G.P_STAKES[self.key] = self
---     end
---     self.injected = true
---     -- should only need to do this once per injection routine
---     G.P_CENTER_POOLS[self.set] = {}
---     for _, v in pairs(G.P_STAKES) do
---         SMODS.insert_pool(G.P_CENTER_POOLS[self.set], v)
---     end
---     table.sort(G.P_CENTER_POOLS[self.set], function(a, b) return a.stake_level < b.stake_level end)
---     G.C.STAKES = {}
---     for i = 1, #G.P_CENTER_POOLS[self.set] do
---         G.C.STAKES[i] = G.P_CENTER_POOLS[self.set][i].colour or G.C.WHITE
---     end
--- end
 
 -- Testing objects
 if Galdur.test_mode then
