@@ -593,10 +593,16 @@ Galdur.add_new_page({
 
 SMODS.current_mod.config_tab = function()
     return {n = G.UIT.ROOT, config = {r = 0.1, minw = 4, align = "tm", padding = 0.2, colour = G.C.BLACK}, nodes = {
-            create_toggle({label = localize('gald_master'), ref_table = Galdur.config, ref_value = 'use', info = localize('gald_use_desc'), active_colour = Galdur.badge_colour, right = true}),
-            create_toggle({label = localize('gald_anim'), ref_table = Galdur.config, ref_value = 'animation', info = localize('gald_anim_desc'), active_colour = Galdur.badge_colour, right = true}),
-            create_toggle({label = localize('gald_reduce'), ref_table = Galdur.config, ref_value = 'reduce', info = localize('gald_reduce_desc'), active_colour = Galdur.badge_colour, right = true}),
-            create_toggle({label = localize('gald_unlock'), ref_table = Galdur.config, ref_value = 'unlock_all', info = localize('gald_unlock_desc'), active_colour = Galdur.badge_colour, right = true})
+            {n=G.UIT.C, config={minw = 3, padding=0.2}, nodes={
+                create_toggle({label = localize('gald_master'), ref_table = Galdur.config, ref_value = 'use', info = localize('gald_use_desc'), active_colour = Galdur.badge_colour, right = true}),
+                create_toggle({label = localize('gald_anim'), ref_table = Galdur.config, ref_value = 'animation', info = localize('gald_anim_desc'), active_colour = Galdur.badge_colour, right = true}),
+                create_toggle({label = localize('gald_reduce'), ref_table = Galdur.config, ref_value = 'reduce', info = localize('gald_reduce_desc'), active_colour = Galdur.badge_colour, right = true}),
+            }},
+            {n=G.UIT.C, config={minw = 3, padding=0.1}, nodes={
+                create_toggle({label = localize('gald_unlock'), ref_table = Galdur.config, ref_value = 'unlock_all', info = localize('gald_unlock_desc'), active_colour = Galdur.badge_colour, right = true}),
+                {n=G.UIT.R, config={minh=0.2}},
+                create_option_cycle({label = 'Stake Selection', options = {'next','last','white'}, ref_table = Galdur.config, ref_value = 'stake_select', info = {'Set which stake is','automatically selected'}, colour = Galdur.badge_colour, w = 3.7*0.65/(5/6), h=0.8*0.65/(5/6), text_scale=0.5*0.65/(5/6), scale=5/6, no_pips = true})
+            }}
     }}
 end
 
