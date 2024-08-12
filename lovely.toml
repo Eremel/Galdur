@@ -1,7 +1,7 @@
 [manifest]
 version = "1.0.0"
 dump_lua = true
-priority = 1
+priority = 10
 
 # Colour stake chips in stake selector and stake chip tower
 # Card:draw()
@@ -78,7 +78,7 @@ payload = '''
 [[patches]]
 [patches.pattern]
 target = 'card.lua'
-pattern = '''local currentBack = self.params.viewed_back and G.GAME.viewed_back or G.GAME.selected_back'''
+pattern = '''local currentBack = type(self.params.viewed_back) == 'table' and self.params.viewed_back or (self.params.viewed_back and G.GAME.viewed_back or G.GAME.selected_back)'''
 position = 'at'
 match_indent = true
-payload = '''local currentBack = (Galdur.config.use and type(self.params.galdur_back) == 'table' and self.params.galdur_back) or (self.params.viewed_back and G.GAME.viewed_back or G.GAME.selected_back)'''
+payload = '''local currentBack = (Galdur.config.use and type(self.params.galdur_back) == 'table' and self.params.galdur_back) or type(self.params.viewed_back) == 'table' and self.params.viewed_back or (self.params.viewed_back and G.GAME.viewed_back or G.GAME.selected_back)'''
