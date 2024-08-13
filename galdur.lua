@@ -571,16 +571,12 @@ function Galdur.start_run(_quick_start)
 end
 
 G.FUNCS.quick_start = function(e)
-    -- Galdur.start_run(true)
-    for _, v in pairs({}) do
-        Galdur.spit("x")
-    end
+    Galdur.start_run(true)
 end
 
 function deck_select_page_deck()
     generate_deck_card_areas()
-    Galdur.generate_deck_preview()
-    Galdur.populate_deck_preview(Galdur.run_setup.choices.deck, true)
+    Galdur.include_deck_preview(true)
 
     return 
         {n=G.UIT.ROOT, config={align = "tm", minh = 3.8, colour = G.C.CLEAR, padding=0.1}, nodes={
@@ -595,17 +591,14 @@ end
 
 function deck_select_page_stake()
     generate_stake_card_areas()
-    Galdur.generate_chip_tower()
     local chip_tower_options = {
         Galdur.run_setup.choices.stake,
         get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key) + 1,
         1
     }
     Galdur.run_setup.choices.stake = chip_tower_options[Galdur.config.stake_select]
-    Galdur.populate_chip_tower(Galdur.run_setup.choices.stake)
-
-    Galdur.generate_deck_preview()
-    Galdur.populate_deck_preview(Galdur.run_setup.choices.deck, true)
+    Galdur.include_chip_tower(true)
+    Galdur.include_deck_preview()
 
     return 
     {n=G.UIT.ROOT, config={align = "tm", minh = 3.8, colour = G.C.CLEAR, padding=0.1}, nodes={
@@ -620,6 +613,17 @@ end
 
 Galdur.add_new_page = function(args)
     Galdur.pages_to_add[#Galdur.pages_to_add + 1] = args
+end
+
+Galdur.include_deck_preview = function(animate)
+    generate_deck_card_areas()
+    Galdur.generate_deck_preview()
+    Galdur.populate_deck_preview(Galdur.run_setup.choices.deck, not animate)
+end
+
+Galdur.include_chip_tower = function(animate)
+    Galdur.generate_chip_tower()
+    Galdur.populate_chip_tower(Galdur.run_setup.choices.stake, not animate)
 end
 
 Galdur.add_new_page({
@@ -876,7 +880,6 @@ function populate_info_queue(deck)
             if part.control.T then info_queue[#info_queue+1] = G.P_CENTERS[part.control.T] or G.P_TAGS[part.control.T] end
         end
     end
-        -- Galdur.spit(tprint(loc_target))
     return info_queue
 end
 
