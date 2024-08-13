@@ -58,18 +58,44 @@ function Card:hover()
 
         local back = Back(self.config.center)
 
-        self.config.h_popup = {n=G.UIT.C, config={align = "cm", minh = 1.7, r = 0.1, colour = G.C.L_BLACK, padding = 0.1, outline=1}, nodes={
-            {n=G.UIT.R, config={align = "cm", r = 0.1, minw = 3, maxw = 4, minh = 0.6}, nodes={
-              {n=G.UIT.O, config={object = UIBox{definition = {n=G.UIT.ROOT, config={align = "cm", colour = G.C.CLEAR}, nodes={
-                  {n=G.UIT.O, config={object = DynaText({string = back:get_name(),maxw = 4, colours = {G.C.WHITE}, shadow = true, bump = true, scale = 0.5, pop_in = 0, silent = true})}},
-                }},
-                config = {offset = {x=0,y=0}, align = 'cm', parent = e}
-              }}},
+        local test_info_queue = {}
+        test_info_queue[#test_info_queue+1] = G.P_CENTERS['v_tarot_merchant']
+        test_info_queue[#test_info_queue+1] = G.P_CENTERS['c_hex']
+        local tooltips = {}
+        for _, center in pairs(test_info_queue) do
+            local full_UI_table = {
+                main = {},
+                info = {},
+                type = {},
+                name = 'done',
+                badges = badges or {}
+            }
+            local desc = generate_card_ui(center, full_UI_table, nil, center.set, nil)
+            tooltips[#tooltips + 1] = {n=G.UIT.R, config={align = "cm"}, nodes={
+                {n=G.UIT.R, config={align = "cm", colour = lighten(G.C.JOKER_GREY, 0.5), r = 0.1, padding = 0.05, emboss = 0.05}, nodes={
+                  info_tip_from_rows(desc.info[1], desc.info[1].name),
+                }}
+              }}
+        end
+
+        self.config.h_popup = {n=G.UIT.R, config={align = "cm",}, nodes={
+            {n=G.UIT.C, config={align='cm'}, nodes = {
+                {n=G.UIT.C, config={align = "cm", minh = 1.7, r = 0.1, colour = G.C.L_BLACK, padding = 0.1, outline=1}, nodes={
+                    {n=G.UIT.R, config={align = "cm", r = 0.1, minw = 3, maxw = 4, minh = 0.6}, nodes={
+                        {n=G.UIT.O, config={object = UIBox{definition =
+                            {n=G.UIT.ROOT, config={align = "cm", colour = G.C.CLEAR}, nodes={
+                                {n=G.UIT.O, config={object = DynaText({string = back:get_name(),maxw = 4, colours = {G.C.WHITE}, shadow = true, bump = true, scale = 0.5, pop_in = 0, silent = true})}},
+                            }},
+                        config = {offset = {x=0,y=0}, align = 'cm', parent = e}}}
+                        },
+                    }},
+                    {n=G.UIT.R, config={align = "cm", colour = G.C.WHITE, minh = 1.5, maxh = 3, minw = 3, maxw = 4, r = 0.1}, nodes={
+                        {n=G.UIT.O, config={object = UIBox{definition = back:generate_UI(), config = {offset = {x=0,y=0}}}}}
+                    }}       
+                }}
             }},
-            {n=G.UIT.R, config={align = "cm", colour = G.C.WHITE, minh = 1.5, maxh = 3, minw = 3, maxw = 4, r = 0.1}, nodes={
-                {n=G.UIT.O, config={object = UIBox{definition = back:generate_UI(), config = {offset = {x=0,y=0}}}}}
-            }}       
-          }}
+            {n=G.UIT.C, config={align='cm'}, nodes = tooltips}
+        }}
         self.config.h_popup_config = self:align_h_popup()
 
         Node.hover(self)
@@ -360,7 +386,7 @@ function populate_stake_card_areas(page)
         card.children.back = get_stake_sprite_in_area(count, 3.4*14/41, card)
     
         local unlocked = true
-        local save_data = G.PROFILES[G.SETTINGS.profile].deck_usage[Galdur.run_setup.choices.deck.effect.center.key].wins_by_key
+        local save_data = G.PROFILES[G.SETTINGS.profile].deck_usage[Galdur.run_setup.choices.deck.effect.center.key]  and G.PROFILES[G.SETTINGS.profile].deck_usage[Galdur.run_setup.choices.deck.effect.center.key].wins_by_key or {}
         for _,v in ipairs(G.P_CENTER_POOLS.Stake[count].applied_stakes) do
             if not G.PROFILES[G.SETTINGS.profile].all_unlocked and not Galdur.config.unlock_all and (not save_data or (save_data and not save_data['stake_'..v])) then
                 unlocked = false
