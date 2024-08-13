@@ -58,24 +58,16 @@ function Card:hover()
 
         local back = Back(self.config.center)
 
-        local test_info_queue = {}
-        test_info_queue[#test_info_queue+1] = G.P_CENTERS['v_tarot_merchant']
-        test_info_queue[#test_info_queue+1] = G.P_CENTERS['c_hex']
+        local info_queue = populate_info_queue(back)
         local tooltips = {}
-        for _, center in pairs(test_info_queue) do
-            local full_UI_table = {
-                main = {},
-                info = {},
-                type = {},
-                name = 'done',
-                badges = badges or {}
-            }
-            local desc = generate_card_ui(center, full_UI_table, nil, center.set, nil)
-            tooltips[#tooltips + 1] = {n=G.UIT.R, config={align = "cm"}, nodes={
+        for _, center in pairs(info_queue) do
+            local desc = generate_card_ui(center, {main = {},info = {},type = {},name = 'done',badges = badges or {}}, nil, center.set, nil)
+            tooltips[#tooltips + 1] =
+            {n=G.UIT.R, config={align = "cm"}, nodes={
                 {n=G.UIT.R, config={align = "cm", colour = lighten(G.C.JOKER_GREY, 0.5), r = 0.1, padding = 0.05, emboss = 0.05}, nodes={
                   info_tip_from_rows(desc.info[1], desc.info[1].name),
                 }}
-              }}
+            }}
         end
 
         self.config.h_popup = {n=G.UIT.R, config={align = "cm",}, nodes={
@@ -574,7 +566,10 @@ function Galdur.start_run(_quick_start)
 end
 
 G.FUNCS.quick_start = function(e)
-    Galdur.start_run(true)
+    -- Galdur.start_run(true)
+    for _, v in pairs({}) do
+        Galdur.spit("x")
+    end
 end
 
 function deck_select_page_deck()
@@ -866,6 +861,18 @@ function create_stake_unlock_message(stake)
             {n=G.UIT.T, config={text = split[2], scale = 0.3, colour = G.C.UI.TEXT_DARK}}
         }}
     }
+end
+
+function populate_info_queue(deck)
+    local info_queue = {}
+    local loc_target = G.localization.descriptions['Back'][deck.effect.center.key]
+    for _, lines in ipairs(loc_target.text_parsed) do
+        for _, part in ipairs(lines) do
+            if part.control.T then info_queue[#info_queue+1] = G.P_CENTERS[part.control.T] or G.P_TAGS[part.control.T] end
+        end
+    end
+        -- Galdur.spit(tprint(loc_target))
+    return info_queue
 end
 
 function Galdur.spit(message)
