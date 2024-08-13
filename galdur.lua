@@ -6,8 +6,8 @@
 --- MOD_DESCRIPTION: A modification to the run setup screen to ease use.
 --- BADGE_COLOUR: 3FC7EB
 --- PRIORITY: -10000
---- VERSION: 1.01h
---- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-0812d]
+--- VERSION: 1.1
+--- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-0813a]
 
 -- Definitions
 Galdur = SMODS.current_mod
@@ -56,6 +56,8 @@ function Card:hover()
             G:save_progress()
         end
 
+        local col = self.params.deck_preview and G.UIT.C or G.UIT.R
+        local info_col = self.params.deck_preview and G.UIT.R or G.UIT.C
         local back = Back(self.config.center)
 
         local info_queue = populate_info_queue(back)
@@ -63,17 +65,19 @@ function Card:hover()
         for _, center in pairs(info_queue) do
             local desc = generate_card_ui(center, {main = {},info = {},type = {},name = 'done',badges = badges or {}}, nil, center.set, nil)
             tooltips[#tooltips + 1] =
-            {n=G.UIT.R, config={align = "cm"}, nodes={
+            {n=info_col, config={align = "tm"}, nodes={
                 {n=G.UIT.R, config={align = "cm", colour = lighten(G.C.JOKER_GREY, 0.5), r = 0.1, padding = 0.05, emboss = 0.05}, nodes={
                   info_tip_from_rows(desc.info[1], desc.info[1].name),
                 }}
             }}
         end
 
-        self.config.h_popup = {n=G.UIT.R, config={align = "cm",}, nodes={
-            {n=G.UIT.C, config={align='cm'}, nodes = {
-                {n=G.UIT.C, config={align = "cm", minh = 1.7, r = 0.1, colour = G.C.L_BLACK, padding = 0.1, outline=1}, nodes={
-                    {n=G.UIT.R, config={align = "cm", r = 0.1, minw = 3, maxw = 4, minh = 0.6}, nodes={
+
+        self.config.h_popup = {n=G.UIT.C, config={align = "cm", padding=0.1}, nodes={
+            (self.params.deck_select > 6 and {n=col, config={align='cm', padding=0.1}, nodes = tooltips} or {n=G.UIT.R}),
+            {n=col, config={align=(self.params.deck_preview and 'bm' or 'cm')}, nodes = {
+                {n=G.UIT.C, config={align = "cm", minh = 1.5, r = 0.1, colour = G.C.L_BLACK, padding = 0.1, outline=1}, nodes={
+                    {n=G.UIT.R, config={align = "cm", r = 0.1, minw = 3, maxw = 4, minh = 0.4}, nodes={
                         {n=G.UIT.O, config={object = UIBox{definition =
                             {n=G.UIT.ROOT, config={align = "cm", colour = G.C.CLEAR}, nodes={
                                 {n=G.UIT.O, config={object = DynaText({string = back:get_name(),maxw = 4, colours = {G.C.WHITE}, shadow = true, bump = true, scale = 0.5, pop_in = 0, silent = true})}},
@@ -81,12 +85,13 @@ function Card:hover()
                         config = {offset = {x=0,y=0}, align = 'cm', parent = e}}}
                         },
                     }},
-                    {n=G.UIT.R, config={align = "cm", colour = G.C.WHITE, minh = 1.5, maxh = 3, minw = 3, maxw = 4, r = 0.1}, nodes={
+                    {n=G.UIT.R, config={align = "cm", colour = G.C.WHITE, minh = 1.3, maxh = 3, minw = 3, maxw = 4, r = 0.1}, nodes={
                         {n=G.UIT.O, config={object = UIBox{definition = back:generate_UI(), config = {offset = {x=0,y=0}}}}}
                     }}       
                 }}
             }},
-            {n=G.UIT.C, config={align='cm'}, nodes = tooltips}
+            (self.params.deck_select < 7 and {n=col, config={align=(self.params.deck_preview and 'bm' or 'cm'), padding=0.1}, nodes = tooltips} or {n=G.UIT.R})
+            
         }}
         self.config.h_popup_config = self:align_h_popup()
 
@@ -242,7 +247,7 @@ function populate_deck_card_areas(page)
         local card_number = Galdur.config.reduce and 1 or 10
         for index = 1, card_number do
             local card = Card(Galdur.run_setup.deck_select_areas[i].T.x,Galdur.run_setup.deck_select_areas[i].T.y, G.CARD_W, G.CARD_H, G.P_CENTER_POOLS.Back[count], G.P_CENTER_POOLS.Back[count],
-                {galdur_back = Back(G.P_CENTER_POOLS.Back[count]), deck_select = true})
+                {galdur_back = Back(G.P_CENTER_POOLS.Back[count]), deck_select = i})
             card.sprite_facing = 'back'
             card.facing = 'back'
             card.children.back = Sprite(card.T.x, card.T.y, card.T.w, card.T.h, G.ASSET_ATLAS[G.P_CENTER_POOLS.Back[count].atlas or 'centers'], G.P_CENTER_POOLS.Back[count].unlocked and G.P_CENTER_POOLS.Back[count].pos or {x = 4, y = 0})
@@ -713,7 +718,7 @@ function Galdur.populate_deck_preview(_deck, silent)
     Galdur.run_setup.selected_deck_height = Galdur.config.reduce and 1 or _deck.effect.center.galdur_height or 52
     for index = 1, Galdur.run_setup.selected_deck_height do
         local card = Card(Galdur.run_setup.selected_deck_area.T.x+2*G.CARD_W, -2*G.CARD_H, G.CARD_W, G.CARD_H,
-            _deck.effect.center, _deck.effect.center, {galdur_back = _deck, deck_select = true})
+            _deck.effect.center, _deck.effect.center, {galdur_back = _deck, deck_select = 1, deck_preview = true})
         if Galdur.config.animation and not silent then Galdur.run_setup.selected_deck_area_holding:emplace(card) end
         card.sprite_facing = 'back'
         card.facing = 'back'
