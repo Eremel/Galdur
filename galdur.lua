@@ -351,7 +351,7 @@ function populate_stake_card_areas(page)
         card.children.back = get_stake_sprite_in_area(count, 3.4*14/41, card)
     
         local unlocked = true
-        local save_data = G.PROFILES[G.SETTINGS.profile].Galdur_wins[Galdur.run_setup.choices.deck.effect.center.key]
+        local save_data = G.PROFILES[G.SETTINGS.profile].deck_usage[Galdur.run_setup.choices.deck.effect.center.key].wins_by_key
         for _,v in ipairs(G.P_CENTER_POOLS.Stake[count].applied_stakes) do
             if not Galdur.config.unlock_all and (not save_data or (save_data and not save_data['stake_'..v])) then
                 unlocked = false
