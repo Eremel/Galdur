@@ -15,6 +15,25 @@ return {
                 "This option reduces the number",
                 "of cards on the screen"    
             },
+            ["gald_stake_colour"] = "Stake Fading",
+            ["gald_stake_colour_options"] = {
+                "Fade uncompleted",    
+                "Fade completed",
+            },
+            ["gald_stake_colour_desc"] = {
+                "Choose which type of stake is",
+                "faded in the stake select screen"
+            },
+            ["gald_stake_select"] = "Stake Selection",
+            ["gald_stake_select_options"] = {
+                "Last played",    
+                "Next unlocked",
+                "White Stake"
+            },
+            ["gald_stake_select_desc"] = {
+                "Choose which stake is selected",
+                "by default in the stake select screen"
+            },
             ["gald_unlock"] = "Unlock all stakes",
             ["gald_unlock_desc"] = {
                 "This option sets all stakes as playable"    

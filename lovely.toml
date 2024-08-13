@@ -12,10 +12,14 @@ pattern = '''self.children.back:draw(overlay)'''
 position = 'at'
 match_indent = true
 payload = '''if self.params.stake_chip then
-    if not self.children.back.won then
+    if self.params.stake_chip_locked then 
         self.children.back:draw(G.C.L_BLACK)
-    else
+    elseif self.params.chip_tower then
         self.children.back:draw(G.C.WHITE)
+    elseif not self.children.back.won then
+        self.children.back:draw(Galdur.config.stake_colour == 1 and G.C.L_BLACK or G.C.WHITE)
+    else
+        self.children.back:draw(Galdur.config.stake_colour == 1 and G.C.WHITE or G.C.L_BLACK)
     end
 else
     self.children.back:draw(overlay)

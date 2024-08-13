@@ -111,7 +111,7 @@ function Card:click()
     if self.deck_select_position and self.config.center.unlocked then
         Galdur.run_setup.selected_deck_from = self.area.config.index
         Galdur.run_setup.choices.deck = Back(self.config.center)
-        Galdur.run_setup.choices.stake = get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key)
+        -- Galdur.run_setup.choices.stake = get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key)
         G.E_MANAGER:clear_queue('galdur')
         Galdur.populate_deck_preview(Galdur.run_setup.choices.deck)
 
@@ -330,10 +330,19 @@ function get_stake_sprite_in_area(_stake, _scale, _area)
             _sprite.ARGS.send_to_shader[2] = G.TIMERS.REAL
 
             if _sprite.won then
-                Sprite.draw_shader(_sprite, 'dissolve')
-                Sprite.draw_shader(_sprite, 'voucher', nil, _sprite.ARGS.send_to_shader)
+                if Galdur.config.stake_colour == 1 then
+                    Sprite.draw_shader(_sprite, 'dissolve')
+                    Sprite.draw_shader(_sprite, 'voucher', nil, _sprite.ARGS.send_to_shader)
+                else
+                    Sprite.draw_self(_sprite, G.C.L_BLACK) 
+                end
             else
-                Sprite.draw_self(_sprite, G.C.L_BLACK) 
+                if Galdur.config.stake_colour == 2 then
+                    Sprite.draw_shader(_sprite, 'dissolve')
+                    Sprite.draw_shader(_sprite, 'voucher', nil, _sprite.ARGS.send_to_shader)
+                else
+                    Sprite.draw_self(_sprite, G.C.L_BLACK) 
+                end
             end
         end
     end
@@ -351,9 +360,9 @@ function populate_stake_card_areas(page)
         card.children.back = get_stake_sprite_in_area(count, 3.4*14/41, card)
     
         local unlocked = true
-        local save_data = G.PROFILES[G.SETTINGS.profile].Galdur_wins[Galdur.run_setup.choices.deck.effect.center.key]
+        local save_data = G.PROFILES[G.SETTINGS.profile].deck_usage[Galdur.run_setup.choices.deck.effect.center.key].wins_by_key
         for _,v in ipairs(G.P_CENTER_POOLS.Stake[count].applied_stakes) do
-            if not Galdur.config.unlock_all and (not save_data or (save_data and not save_data['stake_'..v])) then
+            if not G.PROFILES[G.SETTINGS.profile].all_unlocked and not Galdur.config.unlock_all and (not save_data or (save_data and not save_data['stake_'..v])) then
                 unlocked = false
             end
         end
@@ -539,7 +548,6 @@ function Galdur.start_run(_quick_start)
 end
 
 G.FUNCS.quick_start = function(e)
-    Galdur.spit("NYI - This button doesn't do anything")
     Galdur.start_run(true)
 end
 
@@ -562,7 +570,13 @@ end
 function deck_select_page_stake()
     generate_stake_card_areas()
     Galdur.generate_chip_tower()
-    Galdur.populate_chip_tower(get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key))
+    local chip_tower_options = {
+        Galdur.run_setup.choices.stake,
+        get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key) + 1,
+        1
+    }
+    Galdur.run_setup.choices.stake = chip_tower_options[Galdur.config.stake_select]
+    Galdur.populate_chip_tower(Galdur.run_setup.choices.stake)
 
     Galdur.generate_deck_preview()
     Galdur.populate_deck_preview(Galdur.run_setup.choices.deck, true)
@@ -592,19 +606,37 @@ Galdur.add_new_page({
 })
 
 SMODS.current_mod.config_tab = function()
+    local stake_colour_options = {}
+
     return {n = G.UIT.ROOT, config = {r = 0.1, minw = 4, align = "tm", padding = 0.2, colour = G.C.BLACK}, nodes = {
-            {n=G.UIT.C, config={minw = 3, padding=0.2}, nodes={
+            {n=G.UIT.R, config = {align = 'cm'}, nodes={
                 create_toggle({label = localize('gald_master'), ref_table = Galdur.config, ref_value = 'use', info = localize('gald_use_desc'), active_colour = Galdur.badge_colour, right = true}),
-                create_toggle({label = localize('gald_anim'), ref_table = Galdur.config, ref_value = 'animation', info = localize('gald_anim_desc'), active_colour = Galdur.badge_colour, right = true}),
-                create_toggle({label = localize('gald_reduce'), ref_table = Galdur.config, ref_value = 'reduce', info = localize('gald_reduce_desc'), active_colour = Galdur.badge_colour, right = true}),
             }},
-            {n=G.UIT.C, config={minw = 3, padding=0.1}, nodes={
-                create_toggle({label = localize('gald_unlock'), ref_table = Galdur.config, ref_value = 'unlock_all', info = localize('gald_unlock_desc'), active_colour = Galdur.badge_colour, right = true}),
-                {n=G.UIT.R, config={minh=0.2}},
-                create_option_cycle({label = 'Stake Selection', options = {'next','last','white'}, ref_table = Galdur.config, ref_value = 'stake_select', info = {'Set which stake is','automatically selected'}, colour = Galdur.badge_colour, w = 3.7*0.65/(5/6), h=0.8*0.65/(5/6), text_scale=0.5*0.65/(5/6), scale=5/6, no_pips = true})
-            }}
+            {n=G.UIT.R, config={minh=0.1}},
+            {n=G.UIT.R, config = {minh = 0.04, minw = 4.5, colour = G.C.L_BLACK}},
+            {n=G.UIT.R, nodes = {
+                {n=G.UIT.C, config={minw = 3, padding=0.2}, nodes={
+                    create_toggle({label = localize('gald_anim'), ref_table = Galdur.config, ref_value = 'animation', info = localize('gald_anim_desc'), active_colour = Galdur.badge_colour, right = true}),
+                    create_toggle({label = localize('gald_reduce'), ref_table = Galdur.config, ref_value = 'reduce', info = localize('gald_reduce_desc'), active_colour = Galdur.badge_colour, right = true}),
+                    create_toggle({label = localize('gald_unlock'), ref_table = Galdur.config, ref_value = 'unlock_all', info = localize('gald_unlock_desc'), active_colour = Galdur.badge_colour, right = true}),
+                }},
+                {n=G.UIT.C, config={minw = 3, padding=0.1}, nodes={
+                    {n=G.UIT.R, config={minh=0.1}},
+                    create_option_cycle({label = localize('gald_stake_select'), current_option = Galdur.config.stake_select, options = localize('gald_stake_select_options'), ref_table = Galdur.config, ref_value = 'stake_select', info = localize('gald_stake_select_desc'), colour = Galdur.badge_colour, w = 3.7*0.65/(5/6), h=0.8*0.65/(5/6), text_scale=0.5*0.65/(5/6), scale=5/6, no_pips = true, opt_callback = 'cycle_update'}),
+                    create_option_cycle({label = localize('gald_stake_colour'), current_option = Galdur.config.stake_colour, ref_table = Galdur.config, ref_value = 'stake_colour', options = localize('gald_stake_colour_options'), info = localize('gald_stake_colour_desc'), colour = Galdur.badge_colour, w = 3.7*0.65/(5/6), h=0.8*0.65/(5/6), text_scale=0.5*0.55/(5/6), scale=5/6, no_pips = true, opt_callback = 'cycle_update'}),
+                }}
+            }},
+            
     }}
 end
+
+G.FUNCS.cycle_update = function(args)
+    args = args or {}
+    if args.cycle_config and args.cycle_config.ref_table and args.cycle_config.ref_value then
+        args.cycle_config.ref_table[args.cycle_config.ref_value] = args.to_key
+    end
+end
+
 
 -- Deck Preview Functions
 function Galdur.display_deck_preview()
@@ -719,7 +751,7 @@ function Galdur.populate_chip_tower(_stake, silent)
     for index, stake_index in ipairs(applied_stakes) do
         local card = Card(Galdur.run_setup.chip_tower.T.x, G.ROOM.T.y, 3.4*14/41, 3.4*14/41,
             Galdur.run_setup.choices.deck.effect.center, Galdur.run_setup.choices.deck.effect.center,
-            {hover = #applied_stakes - index, stake = stake_index, stake_chip = true})
+            {hover = #applied_stakes - index, stake = stake_index, stake_chip = true, chip_tower = true})
         if Galdur.config.animation and not silent then Galdur.run_setup.chip_tower_holding:emplace(card) end
         card.facing = 'back'
         card.sprite_facing = 'back'
