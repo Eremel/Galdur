@@ -462,8 +462,9 @@ function G.UIDEF.run_setup_option_new_model(type)
     Galdur.run_setup.choices.deck = Back(get_deck_from_name(G.PROFILES[G.SETTINGS.profile].MEMORY.deck))
     G.PROFILES[G.SETTINGS.profile].MEMORY.stake = G.PROFILES[G.SETTINGS.profile].MEMORY.stake or 1
     Galdur.run_setup.choices.stake = G.PROFILES[G.SETTINGS.profile].MEMORY.stake
+    if Galdur.run_setup.choices.stake > #G.P_CENTER_POOLS.Stake then Galdur.run_setup.choices.stake = 1 end
     Galdur.quick_start.deck = Galdur.run_setup.choices.deck
-    Galdur.quick_start.stake = G.PROFILES[G.SETTINGS.profile].MEMORY.stake
+    Galdur.quick_start.stake = Galdur.run_setup.choices.stake
     Galdur.run_setup.choices.seed = ""
     
     
