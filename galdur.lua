@@ -135,18 +135,7 @@ function Card:click()
         Galdur.run_setup.selected_deck_from = self.area.config.index
         Galdur.run_setup.choices.deck = Back(self.config.center)
         -- Galdur.run_setup.choices.stake = get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key)
-        G.E_MANAGER:clear_queue('galdur')
-        Galdur.populate_deck_preview(Galdur.run_setup.choices.deck)
-
-        local texts = split_string_2(Galdur.run_setup.choices.deck.loc_name)
-        local text = G.OVERLAY_MENU:get_UIE_by_ID('selected_deck_name')
-        text.config.text = texts[1]
-        text.config.scale = 0.7/math.max(1,string.len(texts[1])/8)
-        text.UIBox:recalculate()
-        text = G.OVERLAY_MENU:get_UIE_by_ID('selected_deck_name_2')
-        text.config.text = texts[2]
-        text.config.scale = 0.75/math.max(1,string.len(texts[2])/8)
-        text.UIBox:recalculate()
+        Galdur.set_new_deck()
     elseif self.params.stake_chip and not self.params.stake_chip_locked then
         Galdur.run_setup.choices.stake = self.params.stake
         G.E_MANAGER:clear_queue('galdur')
@@ -265,6 +254,21 @@ function populate_deck_card_areas(page)
         end
         count = count + 1
     end
+end
+
+function Galdur.set_new_deck(silent)
+    G.E_MANAGER:clear_queue('galdur')
+    Galdur.populate_deck_preview(Galdur.run_setup.choices.deck, silent)
+
+    local texts = split_string_2(Galdur.run_setup.choices.deck.loc_name)
+    local text = G.OVERLAY_MENU:get_UIE_by_ID('selected_deck_name')
+    text.config.text = texts[1]
+    text.config.scale = 0.7/math.max(1,string.len(texts[1])/8)
+    text.UIBox:recalculate()
+    text = G.OVERLAY_MENU:get_UIE_by_ID('selected_deck_name_2')
+    text.config.text = texts[2]
+    text.config.scale = 0.75/math.max(1,string.len(texts[2])/8)
+    text.UIBox:recalculate()
 end
 
 function Galdur.clean_up_functions.clean_deck_areas()
@@ -575,9 +579,32 @@ G.FUNCS.quick_start = function(e)
     Galdur.start_run(true)
 end
 
+G.FUNCS.random_deck = function()
+    local selected = false
+    local random
+    while not selected do
+        math.randomseed(os.time())
+        random = math.random(#G.P_CENTER_POOLS.Back)
+        if G.P_CENTER_POOLS.Back[random].unlocked then 
+            selected = true
+            play_sound('whoosh1', math.random()*0.2 + 0.9, 0.35)
+        end
+    end
+    Galdur.run_setup.choices.deck = Back(G.P_CENTER_POOLS.Back[random])
+    Galdur.set_new_deck(true)
+end
+
 function deck_select_page_deck()
     generate_deck_card_areas()
     Galdur.include_deck_preview(true)
+
+    local deck_preview = Galdur.display_deck_preview()
+    deck_preview.nodes[#deck_preview.nodes+1] = {n = G.UIT.R, config={align = 'cm', padding = 0.15}, nodes = {
+        {n=G.UIT.R, config = {maxw = 2.5, minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'random_deck', colour = Galdur.badge_colour, align = "cm", emboss = 0.1}, nodes = {
+            {n=G.UIT.T, config={text = "Random Deck", scale = 0.4, colour = G.C.WHITE}}
+        }}
+    }}
+
 
     return 
         {n=G.UIT.ROOT, config={align = "tm", minh = 3.8, colour = G.C.CLEAR, padding=0.1}, nodes={
@@ -585,7 +612,7 @@ function deck_select_page_deck()
                 generate_deck_card_areas_ui(), 
                 create_deck_page_cycle(),
             }},
-            Galdur.display_deck_preview()
+            deck_preview
         }}
     
 end
@@ -679,7 +706,7 @@ function Galdur.display_deck_preview()
 
     return 
     {n=G.UIT.C, config = {align = "tm", padding = 0.15}, nodes ={
-        {n = G.UIT.C, config = {minh = 5.95, minw = 3, maxw = 3, colour = G.C.BLACK, r=0.1, align = "bm", padding = 0.15, emboss=0.05}, nodes = {
+        {n = G.UIT.R, config = {minh = 5.95, minw = 3, maxw = 3, colour = G.C.BLACK, r=0.1, align = "bm", padding = 0.15, emboss=0.05}, nodes = {
             {n = G.UIT.R, config = {align = "cm", minh = 0.6, maxw = 2.8}, nodes = {
                 {n = G.UIT.T, config = {id = "selected_deck_name", text = texts[1], scale = 0.7/math.max(1,string.len(texts[1])/8), colour = G.C.GREY}},
             }},
