@@ -218,7 +218,7 @@ function generate_deck_card_areas_ui()
         local row = {n = G.UIT.R, config = {colour = G.C.LIGHT}, nodes = {}}
         for j=1, 6 do
             if count > #G.P_CENTER_POOLS.Back then return end
-            table.insert(row.nodes, {n = G.UIT.O, config = {object = Galdur.run_setup.deck_select_areas[count], r = 0.1, id = "deck_select_"..count}})
+            table.insert(row.nodes, {n = G.UIT.O, config = {object = Galdur.run_setup.deck_select_areas[count], focus_args = { snap_to = true }, r = 0.1, id = "deck_select_"..count}})
             count = count + 1
         end
         table.insert(deck_ui_element, row)
@@ -333,7 +333,7 @@ function generate_stake_card_areas_ui()
     for i=1, 3 do
         local row = {n = G.UIT.R, config = {colour = G.C.LIGHT, padding = 0.1}, nodes = {}}
         for j=1, 8 do
-            table.insert(row.nodes, {n = G.UIT.O, config = {object = Galdur.run_setup.stake_select_areas[count], r = 0.1, id = "stake_select_"..count, outline_colour = G.C.YELLOW}})
+            table.insert(row.nodes, {n = G.UIT.O, config = {object = Galdur.run_setup.stake_select_areas[count], focus_args = { snap_to = true }, r = 0.1, id = "stake_select_"..count, outline_colour = G.C.YELLOW}})
             count = count + 1
         end
         table.insert(stake_ui_element, row)
@@ -840,7 +840,7 @@ function Galdur.display_chip_tower()
     return
     {n=G.UIT.C, config = {align = "tm", padding = 0.15}, nodes ={
         {n = G.UIT.C, config = {minh = 5.95, minw = 1.5, maxw = 1.5, colour = G.C.BLACK, r=0.1, align = "bm", padding = 0.15, emboss=0.05}, nodes = {
-            {n=G.UIT.R, config={align = "cm"}, nodes={
+            {n=G.UIT.R, config={align = "cm", focus_args = { snap_to = true }}, nodes={
                 {n = G.UIT.O, config = {object = Galdur.run_setup.chip_tower}}
             }}
         }}
