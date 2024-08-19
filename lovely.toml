@@ -71,7 +71,7 @@ local selected_back = saveTable and saveTable.BACK.name or (args.challenge and a
 [[patches]]
 [patches.pattern]
 target = 'card.lua'
-pattern = '''local currentBack = type(self.params.viewed_back) == 'table' and self.params.viewed_back or (self.params.viewed_back and G.GAME.viewed_back or G.GAME.selected_back)'''
+pattern = '''local currentBack = self.params.viewed_back and G.GAME.viewed_back or G.GAME.selected_back'''
 position = 'at'
 match_indent = true
 payload = '''local currentBack = (Galdur.config.use and type(self.params.galdur_back) == 'table' and self.params.galdur_back) or type(self.params.viewed_back) == 'table' and self.params.viewed_back or (self.params.viewed_back and G.GAME.viewed_back or G.GAME.selected_back)'''
