@@ -501,9 +501,9 @@ function G.UIDEF.run_setup_option_new_model(type)
                     {n=G.UIT.T, config={ref_table = Galdur.run_setup.pages, ref_value = 'next_button', scale = 0.4, colour = G.C.WHITE}}
                 }}}},
                 {n=G.UIT.C, config={minw = 0.5}},
-                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {maxw = 2.5, minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'quick_start', colour = G.C.ORANGE, align = "cm", emboss = 0.1,
+                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {maxw = 3.2, minw = 3.2, minh = 0.8, padding = 0.2, r = 0.1, hover = true, ref_value = 1, button = 'quick_start', colour = G.C.ORANGE, align = "cm", emboss = 0.1,
                     tooltip = {text = {Galdur.run_setup.choices.deck:get_name(), localize({type='name_text', set='Stake', key=G.P_CENTER_POOLS.Stake[Galdur.run_setup.choices.stake].key})}} }, nodes = {
-                    {n=G.UIT.T, config={text = localize('gald_quick_start'), scale = 0.4, colour = G.C.WHITE}}
+                    {n=G.UIT.T, config={text = localize('gald_quick_start'), scale = 0.4, colour = G.C.WHITE, func = 'set_button_pip', focus_args = { button = 'x', set_button_pip = true }}}
                 }}}}
             }}
         }}
