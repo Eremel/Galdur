@@ -292,7 +292,6 @@ function create_deck_page_cycle()
         cycle = create_option_cycle({
             options = options,
             w = 4.5,
-            cycle_shoulders = true,
             opt_callback = 'change_deck_page',
             focus_args = { snap_to = true, nav = 'wide' },
             current_option = 1,
