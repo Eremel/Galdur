@@ -620,7 +620,7 @@ end
 function deck_select_page_stake()
     generate_stake_card_areas()
     local chip_tower_options = {
-        Galdur.run_setup.choices.stake,
+        math.min(Galdur.run_setup.choices.stake, math.max(get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key), 1)),
         get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key) + 1,
         1
     }
