@@ -6,7 +6,7 @@
 --- MOD_DESCRIPTION: A modification to the run setup screen to ease use.
 --- BADGE_COLOUR: 3FC7EB
 --- PRIORITY: -10000
---- VERSION: 1.1
+--- VERSION: 1.1.1
 --- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-0813a]
 
 -- Definitions
@@ -60,7 +60,7 @@ function Card:hover()
         local info_col = self.params.deck_preview and G.UIT.R or G.UIT.C
         local back = Back(self.config.center)
 
-        local info_queue = populate_info_queue(back)
+        local info_queue = populate_info_queue('Back', back.effect.center.key)
         local tooltips = {}
         for _, center in pairs(info_queue) do
             local desc = generate_card_ui(center, {main = {},info = {},type = {},name = 'done',badges = badges or {}}, nil, center.set, nil)
@@ -101,6 +101,18 @@ function Card:hover()
         self:juice_up(0.05, 0.03)
         play_sound('paper1', math.random()*0.2 + 0.9, 0.35)
 
+        local info_queue = populate_info_queue('Stake', G.P_CENTER_POOLS.Stake[self.params.stake].key)
+        local tooltips = {}
+        for _, center in pairs(info_queue) do
+            local desc = generate_card_ui(center, {main = {},info = {},type = {},name = 'done'}, nil, center.set, nil)
+            tooltips[#tooltips + 1] =
+            {n=G.UIT.C, config={align = "bm"}, nodes={
+                {n=G.UIT.R, config={align = "cm", colour = lighten(G.C.JOKER_GREY, 0.5), r = 0.1, padding = 0.05, emboss = 0.05}, nodes={
+                  info_tip_from_rows(desc.info[1], desc.info[1].name),
+                }}
+            }}
+        end
+
         self.config.h_popup = self.params.stake_chip_locked and {n=G.UIT.ROOT, config={align = "cm", colour = G.C.BLACK, r = 0.1, padding = 0.1, outline = 1}, nodes={
             {n=G.UIT.C, config={align = "cm", padding = 0.05, r = 0.1, colour = G.C.L_BLACK}, nodes={
                 {n=G.UIT.R, config={align = "cm", padding = 0}, nodes={
@@ -110,15 +122,18 @@ function Card:hover()
                     create_stake_unlock_message(G.P_CENTER_POOLS.Stake[self.params.stake])
                 }
               }}
-        }} or {n=G.UIT.ROOT, config={align = "cm", colour = G.C.BLACK, r = 0.1, padding = 0.1, outline = 1}, nodes={
-            {n=G.UIT.C, config={align = "cm", padding = 0}, nodes={
-                {n=G.UIT.T, config={text = localize('k_stake'), scale = 0.4, colour = G.C.L_BLACK, vert = true}}
-            }},
-            {n=G.UIT.C, config={align = "cm", padding = 0.1}, nodes={
+        }} or {n = G.UIT.ROOT, config={align='cm', colour = G.C.CLEAR}, nodes = {
+            {n=G.UIT.R, config={align='cm', padding=0.1}, nodes = tooltips},
+            {n=G.UIT.R, config={align = "cm", colour = G.C.BLACK, r = 0.1, padding = 0.1, outline = 1}, nodes={    
                 {n=G.UIT.C, config={align = "cm", padding = 0}, nodes={
-                    {n=G.UIT.O, config={colour = G.C.BLUE, object = get_stake_sprite(self.params.stake), hover = true, can_collide = false}},
+                    {n=G.UIT.T, config={text = localize('k_stake'), scale = 0.4, colour = G.C.L_BLACK, vert = true}}
                 }},
-                G.UIDEF.stake_description(self.params.stake)
+                {n=G.UIT.C, config={align = "cm", padding = 0.1}, nodes={
+                    {n=G.UIT.C, config={align = "cm", padding = 0}, nodes={
+                        {n=G.UIT.O, config={colour = G.C.BLUE, object = get_stake_sprite(self.params.stake), hover = true, can_collide = false}},
+                    }},
+                    G.UIDEF.stake_description(self.params.stake)
+                }}
             }}
         }}
 
@@ -900,9 +915,9 @@ function create_stake_unlock_message(stake)
     }
 end
 
-function populate_info_queue(deck)
+function populate_info_queue(set, key)
     local info_queue = {}
-    local loc_target = G.localization.descriptions['Back'][deck.effect.center.key]
+    local loc_target = G.localization.descriptions[set][key]
     for _, lines in ipairs(loc_target.text_parsed) do
         for _, part in ipairs(lines) do
             if part.control.T then info_queue[#info_queue+1] = G.P_CENTERS[part.control.T] or G.P_TAGS[part.control.T] end
@@ -989,8 +1004,8 @@ if Galdur.test_mode then
         loc_txt = {description = {
             name = "Test Stake FINAL",
             text = {
-            "Required score scales",
-            "faster for each {C:attention}Ante"
+            "Required {T:m_wild}score {T:e_foil}scales",
+            "faster for {T:j_jolly}each {C:attention}Ante"
             }
         }},
         sticker_pos = {x = 1, y = 0},
