@@ -233,7 +233,7 @@ function generate_deck_card_areas_ui()
         local row = {n = G.UIT.R, config = {colour = G.C.LIGHT}, nodes = {}}
         for j=1, 6 do
             if count > #G.P_CENTER_POOLS.Back then return end
-            table.insert(row.nodes, {n = G.UIT.O, config = {object = Galdur.run_setup.deck_select_areas[count], r = 0.1, id = "deck_select_"..count}})
+            table.insert(row.nodes, {n = G.UIT.O, config = {object = Galdur.run_setup.deck_select_areas[count], focus_args = { snap_to = true }, r = 0.1, id = "deck_select_"..count}})
             count = count + 1
         end
         table.insert(deck_ui_element, row)
@@ -307,7 +307,6 @@ function create_deck_page_cycle()
         cycle = create_option_cycle({
             options = options,
             w = 4.5,
-            cycle_shoulders = true,
             opt_callback = 'change_deck_page',
             focus_args = { snap_to = true, nav = 'wide' },
             current_option = 1,
@@ -348,7 +347,7 @@ function generate_stake_card_areas_ui()
     for i=1, 3 do
         local row = {n = G.UIT.R, config = {colour = G.C.LIGHT, padding = 0.1}, nodes = {}}
         for j=1, 8 do
-            table.insert(row.nodes, {n = G.UIT.O, config = {object = Galdur.run_setup.stake_select_areas[count], r = 0.1, id = "stake_select_"..count, outline_colour = G.C.YELLOW}})
+            table.insert(row.nodes, {n = G.UIT.O, config = {object = Galdur.run_setup.stake_select_areas[count], focus_args = { snap_to = true }, r = 0.1, id = "stake_select_"..count, outline_colour = G.C.YELLOW}})
             count = count + 1
         end
         table.insert(stake_ui_element, row)
@@ -516,9 +515,9 @@ function G.UIDEF.run_setup_option_new_model(type)
                     {n=G.UIT.T, config={ref_table = Galdur.run_setup.pages, ref_value = 'next_button', scale = 0.4, colour = G.C.WHITE}}
                 }}}},
                 {n=G.UIT.C, config={minw = 0.5}},
-                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {maxw = 2.5, minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'quick_start', colour = G.C.ORANGE, align = "cm", emboss = 0.1,
+                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {maxw = 3.2, minw = 3.2, minh = 0.8, padding = 0.2, r = 0.1, hover = true, ref_value = 1, button = 'quick_start', colour = G.C.ORANGE, align = "cm", emboss = 0.1,
                     tooltip = {text = {Galdur.run_setup.choices.deck:get_name(), localize({type='name_text', set='Stake', key=G.P_CENTER_POOLS.Stake[Galdur.run_setup.choices.stake].key})}} }, nodes = {
-                    {n=G.UIT.T, config={text = localize('gald_quick_start'), scale = 0.4, colour = G.C.WHITE}}
+                    {n=G.UIT.T, config={text = localize('gald_quick_start'), scale = 0.4, colour = G.C.WHITE, func = 'set_button_pip', focus_args = { button = 'x', set_button_pip = true }}}
                 }}}}
             }}
         }}
@@ -855,7 +854,7 @@ function Galdur.display_chip_tower()
     return
     {n=G.UIT.C, config = {align = "tm", padding = 0.15}, nodes ={
         {n = G.UIT.C, config = {minh = 5.95, minw = 1.5, maxw = 1.5, colour = G.C.BLACK, r=0.1, align = "bm", padding = 0.15, emboss=0.05}, nodes = {
-            {n=G.UIT.R, config={align = "cm"}, nodes={
+            {n=G.UIT.R, config={align = "cm", focus_args = { snap_to = true }}, nodes={
                 {n = G.UIT.O, config = {object = Galdur.run_setup.chip_tower}}
             }}
         }}
