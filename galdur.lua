@@ -502,7 +502,7 @@ function G.UIDEF.run_setup_option_new_model(type)
                 {n = G.UIT.O, config = {id = 'deck_select_pages', object = UIBox{definition = Galdur.run_setup.pages[Galdur.run_setup.current_page].definition(), config = {align = "cm", offset = {x=0,y=0}}}}},
             }},
             {n=G.UIT.R, config = {align = "cm", minw = 3, offset = {x=0, y=-5}}, nodes ={
-                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {id = 'previous_selection', minw = 2.5, minh = 0.8, maxh = 0.8, r = 0.1, hover = true, ref_value = -1, button = Galdur.run_setup.current_page > 1 and 'deck_select_next' or nil, colour = Galdur.run_setup.current_page > 1 and G.C.BLUE or G.C.GREY, align = "cm", emboss = 0.1}, nodes = {
+                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {id = 'previous_selection', minw = 2.5, minh = 0.8, maxh = 0.8, r = 0.1, hover = true, ref_value = -1, button = Galdur.run_setup.current_page > 1 and 'deck_select_next' or function() end, colour = Galdur.run_setup.current_page > 1 and G.C.BLUE or G.C.GREY, align = "cm", emboss = 0.1}, nodes = {
                     {n=G.UIT.T, config={ref_table = Galdur.run_setup.pages, ref_value = 'prev_button', scale = 0.4, colour = G.C.WHITE}}
                 }}}},
                 {n=G.UIT.C, config={align = "cm", padding = 0.05, minh = 0.9, minw = 6.6}, nodes={
@@ -552,7 +552,7 @@ G.FUNCS.deck_select_next = function(e)
     end
 
     local prev_button = e.UIBox:get_UIE_by_ID('previous_selection')
-    prev_button.config.button = Galdur.run_setup.current_page > 1 and 'deck_select_next' or nil
+    prev_button.config.button = Galdur.run_setup.current_page > 1 and 'deck_select_next' or function() end
     prev_button.config.hover = Galdur.run_setup.current_page > 1 and true or false
     prev_button.config.colour = Galdur.run_setup.current_page > 1 and G.C.BLUE or G.C.GREY
     prev_button.UIBox:recalculate()
