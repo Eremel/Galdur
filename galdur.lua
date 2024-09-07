@@ -399,7 +399,7 @@ function populate_stake_card_areas(page)
     for i=1, 24 do
         if count > #G.P_CENTER_POOLS.Stake then return end
         local card = Card(Galdur.run_setup.stake_select_areas[i].T.x,Galdur.run_setup.stake_select_areas[i].T.y, 3.4*14/41, 3.4*14/41,
-            Galdur.run_setup.choices.deck.effect.center, Galdur.run_setup.choices.deck.effect.center, {stake_chip = true, stake = count})
+            Galdur.run_setup.choices.deck.effect.center, Galdur.run_setup.choices.deck.effect.center, {stake_chip = true, stake = count, galdur_selector = true})
         card.facing = 'back'
         card.sprite_facing = 'back'
         card.children.back = get_stake_sprite_in_area(count, 3.4*14/41, card)
@@ -907,7 +907,7 @@ function Galdur.populate_chip_tower(_stake, silent)
     for index, stake_index in ipairs(applied_stakes) do
         local card = Card(Galdur.run_setup.chip_tower.T.x, G.ROOM.T.y, 3.4*14/41, 3.4*14/41,
             Galdur.run_setup.choices.deck.effect.center, Galdur.run_setup.choices.deck.effect.center,
-            {hover = #applied_stakes - index, stake = stake_index, stake_chip = true, chip_tower = true})
+            {hover = #applied_stakes - index, stake = stake_index, stake_chip = true, chip_tower = true, galdur_selector = true})
         if Galdur.config.animation and not silent then Galdur.run_setup.chip_tower_holding:emplace(card) end
         card.facing = 'back'
         card.sprite_facing = 'back'
