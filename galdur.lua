@@ -25,6 +25,7 @@ Galdur.run_setup = {
     selected_deck_height = 52,
 }
 Galdur.quick_start = {}
+Galdur.quick_start_texts = {}
 Galdur.test_mode = false
 Galdur.hover_index = 0
 G.E_MANAGER.queues.galdur = {}
@@ -62,14 +63,16 @@ function Card:hover()
 
         local info_queue = populate_info_queue('Back', back.effect.center.key)
         local tooltips = {}
-        for _, center in pairs(info_queue) do
-            local desc = generate_card_ui(center, {main = {},info = {},type = {},name = 'done',badges = badges or {}}, nil, center.set, nil)
-            tooltips[#tooltips + 1] =
-            {n=info_col, config={align = "tm"}, nodes={
-                {n=G.UIT.R, config={align = "cm", colour = lighten(G.C.JOKER_GREY, 0.5), r = 0.1, padding = 0.05, emboss = 0.05}, nodes={
-                  info_tip_from_rows(desc.info[1], desc.info[1].name),
+        if self.config.center.unlocked then
+            for _, center in pairs(info_queue) do
+                local desc = generate_card_ui(center, {main = {},info = {},type = {},name = 'done',badges = badges or {}}, nil, center.set, nil)
+                tooltips[#tooltips + 1] =
+                {n=info_col, config={align = "tm"}, nodes={
+                    {n=G.UIT.R, config={align = "cm", colour = lighten(G.C.JOKER_GREY, 0.5), r = 0.1, padding = 0.05, emboss = 0.05}, nodes={
+                    info_tip_from_rows(desc.info[1], desc.info[1].name),
+                    }}
                 }}
-            }}
+            end
         end
 
 
@@ -221,7 +224,7 @@ function generate_deck_card_areas()
     end
     Galdur.run_setup.deck_select_areas = {}
     for i=1, 12 do
-        Galdur.run_setup.deck_select_areas[i] = CardArea(G.ROOM.T.x + 0.2*G.ROOM.T.w/2,G.ROOM.T.h, G.CARD_W, G.CARD_H, 
+        Galdur.run_setup.deck_select_areas[i] = CardArea(G.ROOM.T.w,G.ROOM.T.h, G.CARD_W, G.CARD_H, 
         {card_limit = 5, type = 'deck', highlight_limit = 0, deck_height = 0.75, thin_draw = 1, deck_select = true, index = i})
     end
 end
@@ -254,7 +257,7 @@ function populate_deck_card_areas(page)
                 {galdur_back = Back(G.P_CENTER_POOLS.Back[count]), deck_select = i})
             card.sprite_facing = 'back'
             card.facing = 'back'
-            card.children.back = Sprite(card.T.x, card.T.y, card.T.w, card.T.h, G.ASSET_ATLAS[G.P_CENTER_POOLS.Back[count].atlas or 'centers'], G.P_CENTER_POOLS.Back[count].unlocked and G.P_CENTER_POOLS.Back[count].pos or {x = 4, y = 0})
+            card.children.back = Sprite(card.T.x, card.T.y, card.T.w, card.T.h, G.ASSET_ATLAS[G.P_CENTER_POOLS.Back[count].unlocked and G.P_CENTER_POOLS.Back[count].atlas or 'centers'], G.P_CENTER_POOLS.Back[count].unlocked and G.P_CENTER_POOLS.Back[count].pos or {x = 4, y = 0})
             card.children.back.states.hover = card.states.hover
             card.children.back.states.click = card.states.click
             card.children.back.states.drag = card.states.drag
@@ -484,7 +487,8 @@ function G.UIDEF.run_setup_option_new_model(type)
     if Galdur.run_setup.choices.stake > #G.P_CENTER_POOLS.Stake then Galdur.run_setup.choices.stake = 1 end
     Galdur.quick_start.deck = Galdur.run_setup.choices.deck
     Galdur.quick_start.stake = Galdur.run_setup.choices.stake
-    Galdur.run_setup.choices.seed = ""
+    Galdur.run_setup.choices.seed = ''
+    local seed_unlocker_present = (SMODS.Mods['SeedUnlocker'] or {}).can_load
     
     
     generate_deck_card_areas()
@@ -492,33 +496,67 @@ function G.UIDEF.run_setup_option_new_model(type)
     
     Galdur.run_setup.current_page = 1
     Galdur.run_setup.pages.prev_button = ""
-    Galdur.run_setup.pages.next_button = localize(Galdur.run_setup.pages[2].name)
-
+    Galdur.run_setup.pages.next_button = localize(Galdur.run_setup.pages[2].name) .. ' >'
+    local quick_select_text = {}
+    for _, func in ipairs(Galdur.quick_start_texts) do
+        table.insert(quick_select_text, func())
+    end
     local Taiko_pres = (SMODS.Mods['Taikomochi'] or {}).can_load
     local t =
     {n=G.UIT.ROOT, config={align = "cm", colour = G.C.CLEAR, minh = 6.6, minw = 6}, nodes={
         {n = G.UIT.C, nodes = {
             {n=G.UIT.R, config = {align = "cm", minw = 3}, nodes ={
-                {n = G.UIT.O, config = {id = 'deck_select_pages', object = UIBox{definition = Galdur.run_setup.pages[Galdur.run_setup.current_page].definition(), config = {align = "cm", offset = {x=0,y=0}}}}},
+                {n = G.UIT.O, config = {id = 'deck_select_pages', object = UIBox{
+                    definition = Galdur.run_setup.pages[Galdur.run_setup.current_page].definition(),
+                    config = {align = "cm", offset = {x=0,y=0}}
+                }}},
             }},
             {n=G.UIT.R, config = {align = "cm", minw = 3, offset = {x=0, y=-5}}, nodes ={
-                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {id = 'previous_selection', minw = 2.5, minh = 0.8, maxh = 0.8, r = 0.1, hover = true, ref_value = -1, button = Galdur.run_setup.current_page > 1 and 'deck_select_next' or nil, colour = Galdur.run_setup.current_page > 1 and G.C.BLUE or G.C.GREY, align = "cm", emboss = 0.1}, nodes = {
-                    {n=G.UIT.T, config={ref_table = Galdur.run_setup.pages, ref_value = 'prev_button', scale = 0.4, colour = G.C.WHITE}}
-                }}}},
+                {n = G.UIT.C, config={align='cm'}, nodes = {
+                    {n=G.UIT.R, config = {id = 'previous_selection', minw = 2.5, minh = 0.8, maxh = 0.8, r = 0.1,
+                        hover = true, ref_value = -1, button = Galdur.run_setup.current_page > 1 and 'deck_select_next' or function() end,
+                        colour = Galdur.run_setup.current_page > 1 and G.C.BLUE or G.C.CLEAR, align = "cm",
+                        emboss = Galdur.run_setup.current_page > 1 and 0.1 or 0},
+                        nodes = {
+                            {n=G.UIT.T, config={ref_table = Galdur.run_setup.pages, ref_value = 'prev_button', scale = 0.4, colour = G.C.WHITE}},
+                    }}
+                }},
                 {n=G.UIT.C, config={align = "cm", padding = 0.05, minh = 0.9, minw = 6.6}, nodes={
-                    {n=G.UIT.O, config={id = 'seed_input', align = "cm", object = Moveable()}, nodes={}},
+                    {n=G.UIT.O, config={id = 'seed_input', align = "cm", object = Galdur.run_setup.choices.seed_select and UIBox{
+                        definition = {n=G.UIT.ROOT, config={align = "cr", colour = G.C.CLEAR}, nodes={
+                          {n=G.UIT.C, config={align = "cm", minw = 2.5, padding = 0.05}, nodes={
+                            simple_text_container('ml_disabled_seed',{colour = G.C.UI.TEXT_LIGHT, scale = 0.26, shadow = true}),
+                          }},
+                          {n=G.UIT.C, config={align = "cm", minw = 0.1}, nodes={
+                            {n=G.UIT.C, config={maxw = 3.1}, nodes = {
+                                seed_unlocker_present and
+                                create_text_input({max_length = 2500, extended_corpus = true, ref_table = Galdur.run_setup.choices, ref_value = 'seed', prompt_text = localize('k_enter_seed')})
+                             or create_text_input({max_length = 8, all_caps = true, ref_table = Galdur.run_setup.choices, ref_value = 'seed', prompt_text = localize('k_enter_seed')}),
+                            }},
+                            {n=G.UIT.C, config={align = "cm", minw = 0.1}, nodes={}},
+                            UIBox_button({label = localize('ml_paste_seed'),minw = 1, minh = 0.6, button = 'paste_seed', colour = G.C.BLUE, scale = 0.3, col = true})
+                          }}
+                        }},
+                        config = {offset = {x=0,y=0}, parent = e, type = 'cm'}
+                    } or Moveable()}, nodes={}},
                 }},
                 {n=G.UIT.C, config={align = "cm", minw = 2.2, id = 'run_setup_seed'}, nodes={
-                    {n=G.UIT.R, config={align='cr'}, nodes = {create_toggle{col = true, label = localize('k_seeded_run'), label_scale = 0.25, w = 0, scale = 0.7, callback = G.FUNCS.toggle_seeded_run_galdur, ref_table = Galdur.run_setup.choices, ref_value = 'seed_select'}}},
-                    {n=G.UIT.R, config={align='cr'}, nodes = {Taiko_pres and create_toggle{col = true, label = "Zen Mode", label_scale = 0.25, w = 0, scale = 0.7, ref_table = G, ref_value = 'run_zen_mode', active_colour = G.C.BLUE} or nil}}
+                    {n=G.UIT.R, config={align='cr'}, nodes = {create_toggle{col = true, label = localize('k_seeded_run'), label_scale = 0.25, w = 0, scale = 0.7,
+                        callback = G.FUNCS.toggle_seeded_run_galdur, ref_table = Galdur.run_setup.choices, ref_value = 'seed_select'}}},
+                    {n=G.UIT.R, config={align='cr'}, nodes = {Taiko_pres and create_toggle{col = true, label = "Zen Mode", label_scale = 0.25, w = 0, scale = 0.7,
+                        ref_table = G, ref_value = 'run_zen_mode', active_colour = G.C.BLUE} or nil}}
                 }},
-                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {minw = 2.5, minh = 0.8, maxh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'deck_select_next', colour = G.C.BLUE, align = "cm", emboss = 0.1}, nodes = {
-                    {n=G.UIT.T, config={ref_table = Galdur.run_setup.pages, ref_value = 'next_button', scale = 0.4, colour = G.C.WHITE}}
-                }}}},
+                {n = G.UIT.C, config={align='cm'}, nodes = {
+                    {n=G.UIT.R, config = {id = 'next_selection', minw = 2.5, minh = 0.8, maxh = 0.8, r = 0.1, hover = true, ref_value = 1,
+                        button = 'deck_select_next', colour = G.C.BLUE,
+                        align = "cm", emboss = 0.1}, nodes = {
+                            {n=G.UIT.T, config={ref_table = Galdur.run_setup.pages, ref_value = 'next_button', scale = 0.4, colour = G.C.WHITE}},
+                    }}
+                }},
                 {n=G.UIT.C, config={minw = 0.5}},
-                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {maxw = 2.5, minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'quick_start', colour = G.C.ORANGE, align = "cm", emboss = 0.1,
-                    tooltip = {text = {Galdur.run_setup.choices.deck:get_name(), localize({type='name_text', set='Stake', key=G.P_CENTER_POOLS.Stake[Galdur.run_setup.choices.stake].key})}} }, nodes = {
-                    {n=G.UIT.T, config={text = localize('gald_quick_start'), scale = 0.4, colour = G.C.WHITE}}
+                {n = G.UIT.C, config={align='cm'}, nodes = {{n=G.UIT.R, config = {maxw = 2.5, minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1,
+                    button = 'quick_start', colour = G.C.ORANGE, align = "cm", emboss = 0.1, tooltip = {text = quick_select_text} }, nodes = {
+                        {n=G.UIT.T, config={text = localize('gald_quick_start'), scale = 0.4, colour = G.C.WHITE}}
                 }}}}
             }}
         }}
@@ -543,18 +581,22 @@ G.FUNCS.deck_select_next = function(e)
     elseif Galdur.run_setup.current_page == #Galdur.run_setup.pages then
         Galdur.run_setup.pages.next_button = localize('gald_play')
     else
-        Galdur.run_setup.pages.next_button = localize(Galdur.run_setup.pages[Galdur.run_setup.current_page+1].name)
+        Galdur.run_setup.pages.next_button = localize(Galdur.run_setup.pages[Galdur.run_setup.current_page+1].name) .. ' >'
     end
     if Galdur.run_setup.current_page == 1 then
         Galdur.run_setup.pages.prev_button = " "
     else
-        Galdur.run_setup.pages.prev_button = localize(Galdur.run_setup.pages[Galdur.run_setup.current_page-1].name)
+        Galdur.run_setup.pages.prev_button = '< ' .. localize(Galdur.run_setup.pages[Galdur.run_setup.current_page-1].name)
     end
+
+    local next_button = e.UIBox:get_UIE_by_ID('next_selection')
+    next_button.config.colour = Galdur.run_setup.current_page == #Galdur.run_setup.pages and HEX('00be67') or G.C.BLUE
 
     local prev_button = e.UIBox:get_UIE_by_ID('previous_selection')
     prev_button.config.button = Galdur.run_setup.current_page > 1 and 'deck_select_next' or nil
+    prev_button.config.emboss = Galdur.run_setup.current_page > 1 and 0.1 or 0
     prev_button.config.hover = Galdur.run_setup.current_page > 1 and true or false
-    prev_button.config.colour = Galdur.run_setup.current_page > 1 and G.C.BLUE or G.C.GREY
+    prev_button.config.colour = Galdur.run_setup.current_page > 1 and G.C.BLUE or G.C.CLEAR
     prev_button.UIBox:recalculate()
 
     local current_selector_page = e.UIBox:get_UIE_by_ID('deck_select_pages')
@@ -568,7 +610,7 @@ G.FUNCS.deck_select_next = function(e)
 end
 
 function Galdur.start_run(_quick_start)
-    if not Galdur.run_setup.choices.seed_select then Galdur.run_setup.choices.seed = nil end
+    if not Galdur.run_setup.choices.seed_select or Galdur.run_setup.choices.seed == '' then Galdur.run_setup.choices.seed = nil end
     if _quick_start then
         Galdur.run_setup.choices.deck = Galdur.quick_start.deck
         Galdur.run_setup.choices.stake = Galdur.quick_start.stake
@@ -609,6 +651,31 @@ G.FUNCS.random_deck = function()
     Galdur.set_new_deck(true)
 end
 
+G.FUNCS.random_stake = function()
+    local selected = false
+    local random_stake
+    while not selected do
+        math.randomseed(os.time())
+        random_stake = math.random(#G.P_CENTER_POOLS.Stake)
+        local unlocked = true
+        local save_data = G.PROFILES[G.SETTINGS.profile].deck_usage[Galdur.run_setup.choices.deck.effect.center.key]  and G.PROFILES[G.SETTINGS.profile].deck_usage[Galdur.run_setup.choices.deck.effect.center.key].wins_by_key or {}
+        for _,v in ipairs(G.P_CENTER_POOLS.Stake[random_stake].applied_stakes) do
+            if not G.PROFILES[G.SETTINGS.profile].all_unlocked and not Galdur.config.unlock_all and (not save_data or (save_data and not save_data['stake_'..v])) then
+                unlocked = false
+            end
+        end
+        if save_data and save_data[G.P_CENTER_POOLS.Stake[random_stake].key] then
+            unlocked = true
+        end
+        if unlocked then
+            selected = true
+            play_sound('whoosh1', math.random()*0.2 + 0.9, 0.35)
+        end
+    end
+    Galdur.run_setup.choices.stake = random_stake
+    Galdur.populate_chip_tower(random_stake)
+end
+
 function deck_select_page_deck()
     generate_deck_card_areas()
     Galdur.include_deck_preview(true)
@@ -643,6 +710,13 @@ function deck_select_page_stake()
     Galdur.include_chip_tower(true)
     Galdur.include_deck_preview()
 
+    local deck_preview = Galdur.display_deck_preview()
+    deck_preview.nodes[#deck_preview.nodes+1] = {n = G.UIT.R, config={align = 'cm', padding = 0.15}, nodes = {
+        {n=G.UIT.R, config = {maxw = 2.5, minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'random_stake', colour = Galdur.badge_colour, align = "cm", emboss = 0.1}, nodes = {
+            {n=G.UIT.T, config={text = "Random Stake", scale = 0.4, colour = G.C.WHITE}}
+        }}
+    }}
+
     return 
     {n=G.UIT.ROOT, config={align = "tm", minh = 3.8, colour = G.C.CLEAR, padding=0.1}, nodes={
         {n=G.UIT.C, config = {padding = 0.15}, nodes ={    
@@ -650,12 +724,19 @@ function deck_select_page_stake()
             create_stake_page_cycle(),
         }},
         Galdur.display_chip_tower(),
-        Galdur.display_deck_preview()  
+        deck_preview
     }}
 end
 
 Galdur.add_new_page = function(args)
+    if args.quick_start_text then
+        Galdur.add_to_quick_start(args.quick_start_text)
+    end
     Galdur.pages_to_add[#Galdur.pages_to_add + 1] = args
+end
+
+Galdur.add_to_quick_start = function(text_func)
+    table.insert(Galdur.quick_start_texts, text_func)
 end
 
 Galdur.include_deck_preview = function(animate)
@@ -672,10 +753,12 @@ end
 Galdur.add_new_page({
     definition = deck_select_page_deck,
     name = 'gald_select_deck',
+    quick_start_text = function() return Galdur.run_setup.choices.deck:get_name() end
 })
 Galdur.add_new_page({
     definition = deck_select_page_stake,
-    name = 'gald_select_stake'
+    name = 'gald_select_stake',
+    quick_start_text = function() return localize({type='name_text', set='Stake', key=G.P_CENTER_POOLS.Stake[Galdur.run_setup.choices.stake].key}) end
 })
 
 SMODS.current_mod.config_tab = function()
@@ -934,7 +1017,7 @@ end
 function G.FUNCS.toggle_seeded_run_galdur(bool, e)
     if not e then return end
     local current_selector_page = e.UIBox:get_UIE_by_ID('seed_input')
-    local seed_unlocker_pres = (SMODS.Mods['SeedUnlocker'] or {}).can_load
+    local seed_unlocker_present = (SMODS.Mods['SeedUnlocker'] or {}).can_load
     if not current_selector_page then return end
     current_selector_page.config.object:remove()
     current_selector_page.config.object = bool and UIBox{
@@ -944,7 +1027,7 @@ function G.FUNCS.toggle_seeded_run_galdur(bool, e)
           }},
           {n=G.UIT.C, config={align = "cm", minw = 0.1}, nodes={
             {n=G.UIT.C, config={maxw = 3.1}, nodes = {
-                seed_unlocker_pres and
+                seed_unlocker_present and
                 create_text_input({max_length = 2500, extended_corpus = true, ref_table = Galdur.run_setup.choices, ref_value = 'seed', prompt_text = localize('k_enter_seed')})
              or create_text_input({max_length = 8, all_caps = true, ref_table = Galdur.run_setup.choices, ref_value = 'seed', prompt_text = localize('k_enter_seed')}),
             }},
@@ -971,14 +1054,14 @@ if Galdur.test_mode then
         SMODS.Stake({
             key = "test_"..i,
             applied_stakes = i==1 and {} or {"galdur_test_"..(i-1)},
-            above_stake = (i==1 and 'gold' or "galdur_test_"..(i-1)),
-            loc_txt = {description = {
+            above_stake = (i==1 and 'red' or "galdur_test_"..(i-1)),
+            loc_txt = {
                 name = "Test Stake "..i,
                 text = {
                 "Required score scales",
                 "faster for each {C:attention}Ante"
                 }
-            }},
+            },
             pos = {x = 3, y = 1},
             shiny = true,
             sticker_pos = {x = 1, y = 0},
@@ -988,6 +1071,17 @@ if Galdur.test_mode then
         --     key = "test_"..i
         -- })
     end
+
+    SMODS.Stake:take_ownership('blue', {
+        applied_stakes = {"galdur_test_2"},
+        loc_txt = {
+            name = "Apple Stake",
+            text = {
+            "Required score scales",
+            "faster for each {C:attention}Ante"
+            }
+        },
+    })
 
     SMODS.Atlas({
         key = 'sticker',
@@ -1001,13 +1095,13 @@ if Galdur.test_mode then
         applied_stakes = {"cry_brown", "galdur_test_10"},
         above_stake = ('galdur_test_10'),
         pos = { x = 4, y = 1 },
-        loc_txt = {description = {
+        loc_txt = {
             name = "Test Stake FINAL",
             text = {
             "Required {T:m_wild}score {T:e_foil}scales",
             "faster for {T:j_jolly}each {C:attention}Ante"
             }
-        }},
+        },
         sticker_pos = {x = 1, y = 0},
         sticker_atlas = 'sticker',
         shiny = true
