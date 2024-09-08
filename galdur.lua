@@ -645,8 +645,7 @@ G.FUNCS.random_deck = function()
         end
     end
     while not selected do
-        math.randomseed(os.time())
-        local random = math.random(#random_deck_opts)
+        local random = pseudorandom_element(random_deck_opts, pseudoseed(os.time()))
         selected = Back(G.P_CENTER_POOLS.Back[random_deck_opts[random]])
         if selected == Galdur.run_setup.choices.deck and #random_deck_opts > 1 then selected = false end
     end
@@ -674,8 +673,7 @@ G.FUNCS.random_stake = function()
     end
     local selected = false
     while not selected do
-        math.randomseed(os.time())
-        local random = math.random(#random_stake_opts)
+        local random = pseudorandom_element(random_stake_opts, pseudoseed(os.time()))
         selected = random_stake_opts[random]
         if selected == Galdur.run_setup.choices.stake and #random_stake_opts > 1 then selected = false end
     end
