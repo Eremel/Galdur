@@ -638,42 +638,50 @@ end
 
 G.FUNCS.random_deck = function()
     local selected = false
-    local random
-    while not selected do
-        math.randomseed(os.time())
-        random = math.random(#G.P_CENTER_POOLS.Back)
-        if G.P_CENTER_POOLS.Back[random].unlocked then 
-            selected = true
-            play_sound('whoosh1', math.random()*0.2 + 0.9, 0.35)
+    local random_deck_opts = {}
+    for i=1, #G.P_CENTER_POOLS.Back do
+        if G.P_CENTER_POOLS.Back[i].unlocked then
+            random_deck_opts[#random_deck_opts + 1] = i
         end
     end
-    Galdur.run_setup.choices.deck = Back(G.P_CENTER_POOLS.Back[random])
-    Galdur.set_new_deck(true)
+    while not selected do
+        math.randomseed(os.time())
+        local random = math.random(#random_deck_opts)
+        selected = Back(G.P_CENTER_POOLS.Back[random_deck_opts[random]])
+        if selected == Galdur.run_setup.choices.deck and #random_deck_opts > 1 then selected = false end
+    end
+    play_sound('whoosh1', math.random()*0.2 + 0.9, 0.35)
+    Galdur.run_setup.choices.deck = selected
+    Galdur.set_new_deck()
 end
 
 G.FUNCS.random_stake = function()
-    local selected = false
-    local random_stake
-    while not selected do
-        math.randomseed(os.time())
-        random_stake = math.random(#G.P_CENTER_POOLS.Stake)
+    local random_stake_opts = {}
+    for i=1, #G.P_CENTER_POOLS.Stake do
         local unlocked = true
         local save_data = G.PROFILES[G.SETTINGS.profile].deck_usage[Galdur.run_setup.choices.deck.effect.center.key]  and G.PROFILES[G.SETTINGS.profile].deck_usage[Galdur.run_setup.choices.deck.effect.center.key].wins_by_key or {}
-        for _,v in ipairs(G.P_CENTER_POOLS.Stake[random_stake].applied_stakes) do
+        for _,v in ipairs(G.P_CENTER_POOLS.Stake[i].applied_stakes) do
             if not G.PROFILES[G.SETTINGS.profile].all_unlocked and not Galdur.config.unlock_all and (not save_data or (save_data and not save_data['stake_'..v])) then
                 unlocked = false
             end
         end
-        if save_data and save_data[G.P_CENTER_POOLS.Stake[random_stake].key] then
+        if save_data and save_data[G.P_CENTER_POOLS.Stake[i].key] then
             unlocked = true
         end
         if unlocked then
-            selected = true
-            play_sound('whoosh1', math.random()*0.2 + 0.9, 0.35)
+            random_stake_opts[#random_stake_opts + 1] = i
         end
     end
-    Galdur.run_setup.choices.stake = random_stake
-    Galdur.populate_chip_tower(random_stake)
+    local selected = false
+    while not selected do
+        math.randomseed(os.time())
+        local random = math.random(#random_stake_opts)
+        selected = random_stake_opts[random]
+        if selected == Galdur.run_setup.choices.stake and #random_stake_opts > 1 then selected = false end
+    end
+    play_sound('whoosh1', math.random()*0.2 + 0.9, 0.35)
+    Galdur.run_setup.choices.stake = selected
+    Galdur.populate_chip_tower(selected)
 end
 
 function deck_select_page_deck()
@@ -732,7 +740,8 @@ Galdur.add_new_page = function(args)
     if args.quick_start_text then
         Galdur.add_to_quick_start(args.quick_start_text)
     end
-    Galdur.pages_to_add[#Galdur.pages_to_add + 1] = args
+    table.insert(Galdur.pages_to_add, args.page or (#Galdur.pages_to_add + 1), args)
+    -- Galdur.pages_to_add[#Galdur.pages_to_add + 1] = args
 end
 
 Galdur.add_to_quick_start = function(text_func)
