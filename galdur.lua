@@ -6,7 +6,7 @@
 --- MOD_DESCRIPTION: A modification to the run setup screen to ease use.
 --- BADGE_COLOUR: 3FC7EB
 --- PRIORITY: -10000
---- VERSION: 1.1.1
+--- VERSION: 1.1.2
 --- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-0813a]
 
 -- Definitions
