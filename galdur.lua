@@ -736,14 +736,14 @@ end
 
 Galdur.add_new_page = function(args)
     if args.quick_start_text then
-        Galdur.add_to_quick_start(args.quick_start_text)
+        Galdur.add_to_quick_start(args.quick_start_text, args.page)
     end
     table.insert(Galdur.pages_to_add, args.page or (#Galdur.pages_to_add + 1), args)
     -- Galdur.pages_to_add[#Galdur.pages_to_add + 1] = args
 end
 
-Galdur.add_to_quick_start = function(text_func)
-    table.insert(Galdur.quick_start_texts, text_func)
+Galdur.add_to_quick_start = function(text_func, page)
+    table.insert(Galdur.quick_start_texts, page or (#Galdur.quick_start_texts + 1), text_func)
 end
 
 Galdur.include_deck_preview = function(animate)
