@@ -709,7 +709,7 @@ function deck_select_page_stake()
     generate_stake_card_areas()
     local chip_tower_options = {
         math.min(Galdur.run_setup.choices.stake, math.max(get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key), 1)),
-        get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key) + 1,
+        math.min(get_deck_win_stake(Galdur.run_setup.choices.deck.effect.center.key) + 1, #G.P_CENTER_POOLS.Stake),
         1
     }
     Galdur.run_setup.choices.stake = chip_tower_options[Galdur.config.stake_select]
