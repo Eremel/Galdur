@@ -893,7 +893,7 @@ function Galdur.populate_deck_preview(_deck, silent)
                 trigger = 'immediate',
                 func = (function()
                     play_sound('card1', math.random()*0.2 + 0.9, 0.35)
-                    if Galdur.run_setup.selected_deck_area_holding.cards then Galdur.run_setup.selected_deck_area:draw_card_from(Galdur.run_setup.selected_deck_area_holding) end
+                    if Galdur.run_setup.selected_deck_area_holding.cards and Galdur.run_setup.selected_deck_area.cards then Galdur.run_setup.selected_deck_area:draw_card_from(Galdur.run_setup.selected_deck_area_holding) end
                     return true
                 end)
             }), 'galdur')
