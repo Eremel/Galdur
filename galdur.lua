@@ -74,7 +74,9 @@ function Card:hover()
                 }}
             end
         end
-
+        local badges = {n=G.UIT.ROOT, config = {colour = G.C.CLEAR, align = 'cm'}, nodes = {}}
+        SMODS.create_mod_badges(self.config.center, badges.nodes)
+        if badges.nodes.mod_set then badges.nodes.mod_set = nil end
 
         self.config.h_popup = {n=G.UIT.C, config={align = "cm", padding=0.1}, nodes={
             (self.params.deck_select > 6 and {n=col, config={align='cm', padding=0.1}, nodes = tooltips} or {n=G.UIT.R}),
@@ -90,7 +92,10 @@ function Card:hover()
                     }},
                     {n=G.UIT.R, config={align = "cm", colour = G.C.WHITE, minh = 1.3, maxh = 3, minw = 3, maxw = 4, r = 0.1}, nodes={
                         {n=G.UIT.O, config={object = UIBox{definition = back:generate_UI(), config = {offset = {x=0,y=0}}}}}
-                    }}       
+                    }},
+                    badges.nodes[1] and {n=G.UIT.R, config={align = "cm", r = 0.1, minw = 3, maxw = 4, minh = 0.4}, nodes={
+                        {n=G.UIT.O, config={object = UIBox{definition = badges, config = {offset = {x=0,y=0}}}}}
+                    }},
                 }}
             }},
             (self.params.deck_select < 7 and {n=col, config={align=(self.params.deck_preview and 'bm' or 'cm'), padding=0.1}, nodes = tooltips} or {n=G.UIT.R})
@@ -115,6 +120,11 @@ function Card:hover()
                 }}
             }}
         end
+        
+        local badges = {n=G.UIT.ROOT, config = {colour = G.C.CLEAR, align = 'cm'}, nodes = {}}
+        SMODS.create_mod_badges(G.P_CENTER_POOLS.Stake[self.params.stake], badges.nodes)
+        if badges.nodes.mod_set then badges.nodes.mod_set = nil end
+
 
         self.config.h_popup = self.params.stake_chip_locked and {n=G.UIT.ROOT, config={align = "cm", colour = G.C.BLACK, r = 0.1, padding = 0.1, outline = 1}, nodes={
             {n=G.UIT.C, config={align = "cm", padding = 0.05, r = 0.1, colour = G.C.L_BLACK}, nodes={
@@ -127,16 +137,21 @@ function Card:hover()
               }}
         }} or {n = G.UIT.ROOT, config={align='cm', colour = G.C.CLEAR}, nodes = {
             {n=G.UIT.R, config={align='cm', padding=0.1}, nodes = tooltips},
-            {n=G.UIT.R, config={align = "cm", colour = G.C.BLACK, r = 0.1, padding = 0.1, outline = 1}, nodes={    
-                {n=G.UIT.C, config={align = "cm", padding = 0}, nodes={
-                    {n=G.UIT.T, config={text = localize('k_stake'), scale = 0.4, colour = G.C.L_BLACK, vert = true}}
-                }},
-                {n=G.UIT.C, config={align = "cm", padding = 0.1}, nodes={
+            {n=G.UIT.C, config={align = "cm", padding = 0.1, colour = G.C.BLACK, r = 0.1, outline = 1}, nodes={    
+                {n=G.UIT.R, nodes = {
+                    {n=G.UIT.C, config={align = "cm", padding = 0}, nodes={
+                        {n=G.UIT.T, config={text = localize('k_stake'), scale = 0.4, colour = G.C.L_BLACK, vert = true}}
+                    }},
                     {n=G.UIT.C, config={align = "cm", padding = 0}, nodes={
                         {n=G.UIT.O, config={colour = G.C.BLUE, object = get_stake_sprite(self.params.stake), hover = true, can_collide = false}},
                     }},
-                    G.UIDEF.stake_description(self.params.stake)
-                }}
+                    {n=G.UIT.C, config={align = "cm", padding = 0}, nodes={
+                        G.UIDEF.stake_description(self.params.stake)
+                    }}
+                }},
+                badges.nodes[1] and {n=G.UIT.R, config={ align = "cm"}, nodes={
+                    {n=G.UIT.O, config={object = UIBox{definition = badges, config = {offset = {x=0,y=0}}}}}
+                }},
             }}
         }}
 
