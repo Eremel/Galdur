@@ -6,7 +6,7 @@
 --- MOD_DESCRIPTION: A modification to the run setup screen to ease use.
 --- BADGE_COLOUR: 3FC7EB
 --- PRIORITY: -10000
---- VERSION: 1.1.3
+--- VERSION: 1.1.4
 --- DEPENDENCIES: [Steamodded>=1.0.0~ALPHA-0813a]
 
 -- Definitions
@@ -26,6 +26,10 @@ Galdur.run_setup = {
 }
 Galdur.quick_start = {}
 Galdur.quick_start_texts = {}
+Galdur.deck_preview_texts = {
+    deck_preview_1 = '',
+    deck_preview_2 = ''
+}
 Galdur.test_mode = false
 Galdur.hover_index = 0
 G.E_MANAGER.queues.galdur = {}
@@ -215,16 +219,6 @@ G.FUNCS.exit_overlay_menu = function()
     exit_overlay()
 end
 
--- local deck_win = set_deck_win
--- function set_deck_win()
---     if G.GAME.selected_back and G.GAME.selected_back.effect and G.GAME.selected_back.effect.center and G.GAME.selected_back.effect.center.key then
---         local deck_key = G.GAME.selected_back.effect.center.key
---         if not G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key] then G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key] = {} end
---         G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key][G.P_CENTER_POOLS.Stake[G.GAME.stake].key] = (G.PROFILES[G.SETTINGS.profile].Galdur_wins[deck_key][G.P_CENTER_POOLS.Stake[G.GAME.stake].key] or 0) + 1
---     end
---     deck_win()
--- end
-
   -- Deck Selection Functions
 function generate_deck_card_areas()
     if Galdur.run_setup.deck_select_areas then
@@ -293,15 +287,14 @@ function Galdur.set_new_deck(silent)
     G.E_MANAGER:clear_queue('galdur')
     Galdur.populate_deck_preview(Galdur.run_setup.choices.deck, silent)
 
-    local texts = split_string_2(Galdur.run_setup.choices.deck.loc_name)
-    local text = G.OVERLAY_MENU:get_UIE_by_ID('selected_deck_name')
-    text.config.text = texts[1]
-    text.config.scale = 0.7/math.max(1,string.len(texts[1])/8)
-    text.UIBox:recalculate()
-    text = G.OVERLAY_MENU:get_UIE_by_ID('selected_deck_name_2')
-    text.config.text = texts[2]
-    text.config.scale = 0.75/math.max(1,string.len(texts[2])/8)
-    text.UIBox:recalculate()
+    local deck_name = split_string_2(Galdur.run_setup.choices.deck.loc_name)
+    Galdur.deck_preview_texts.deck_preview_1 = deck_name[1]
+    Galdur.deck_preview_texts.deck_preview_2 = deck_name[2]
+
+    for i=1, 2 do
+        local dyna_text_object = G.OVERLAY_MENU:get_UIE_by_ID('deck_name_'..i).config.object
+        dyna_text_object.scale = 0.7/math.max(1, string.len(Galdur.deck_preview_texts['deck_preview_'..i])/8)
+    end
 end
 
 function Galdur.clean_up_functions.clean_deck_areas()
@@ -505,6 +498,10 @@ function G.UIDEF.run_setup_option_new_model(type)
     Galdur.run_setup.choices.seed = ''
     local seed_unlocker_present = (SMODS.Mods['SeedUnlocker'] or {}).can_load
     
+    
+    local deck_name = split_string_2(Galdur.run_setup.choices.deck.loc_name)
+    Galdur.deck_preview_texts.deck_preview_1 = deck_name[1]
+    Galdur.deck_preview_texts.deck_preview_2 = deck_name[2]
     
     generate_deck_card_areas()
     generate_stake_card_areas()
@@ -819,6 +816,8 @@ end
 -- Deck Preview Functions
 function Galdur.display_deck_preview()
     local texts = split_string_2(Galdur.run_setup.choices.deck.loc_name)
+    Galdur.deck_preview_texts.deck_name_1 = texts[1]
+    Galdur.deck_preview_texts.deck_name_2 = texts[2]
 
     local deck_node = {n=G.UIT.R, config={align = "tm"}, nodes={
         {n = G.UIT.O, config = {object = Galdur.run_setup.selected_deck_area}}
@@ -828,10 +827,24 @@ function Galdur.display_deck_preview()
     {n=G.UIT.C, config = {align = "tm", padding = 0.15}, nodes ={
         {n = G.UIT.R, config = {minh = 5.95, minw = 3, maxw = 3, colour = G.C.BLACK, r=0.1, align = "bm", padding = 0.15, emboss=0.05}, nodes = {
             {n = G.UIT.R, config = {align = "cm", minh = 0.6, maxw = 2.8}, nodes = {
-                {n = G.UIT.T, config = {id = "selected_deck_name", text = texts[1], scale = 0.7/math.max(1,string.len(texts[1])/8), colour = G.C.GREY}},
+                -- {n = G.UIT.T, config = {id = "selected_deck_name", text = texts[1], scale = 0.7/math.max(1,string.len(texts[1])/8), colour = G.C.GREY}},
+                {n=G.UIT.O, config = {id = 'deck_name_1', object = DynaText({
+                    string = {{ref_table = Galdur.deck_preview_texts, ref_value = 'deck_preview_1'}},
+                    scale = 0.7/math.max(1, string.len(Galdur.deck_preview_texts.deck_preview_1)/8),
+                    colours = {G.C.GREY},
+                    pop_in_rate = 5,
+                    silent = true
+                })}}
             }},
             {n = G.UIT.R, config = {align = "cm", minh = 0.6, maxw = 2.8}, nodes = {
-                {n = G.UIT.T, config = {id = "selected_deck_name_2", text = texts[2], scale = 0.75/math.max(1,string.len(texts[2])/8), colour = G.C.GREY}}
+                -- {n = G.UIT.T, config = {id = "selected_deck_name_2", text = texts[2], scale = 0.75/math.max(1,string.len(texts[2])/8), colour = G.C.GREY}},
+                {n=G.UIT.O, config = {id = 'deck_name_2', object = DynaText({
+                    string = {{ref_table = Galdur.deck_preview_texts, ref_value = 'deck_preview_2'}},
+                    scale = 0.7/math.max(1, string.len(Galdur.deck_preview_texts.deck_preview_2)/8),
+                    colours = {G.C.GREY},
+                    pop_in_rate = 5,
+                    silent = true
+                })}}
             }},
             {n = G.UIT.R, config = {align = "cm", minh = 0.2}},
                 deck_node,
