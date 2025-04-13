@@ -41,6 +41,8 @@ return {
             },
             ["gald_select_deck"] = "选择牌组",
             ["gald_select_stake"] = "选择赌注",
+            ["gald_random_deck"] = "随机牌组",
+            ["gald_random_stake"] = "随机赌注",
             ["gald_play"] = "开始游戏",
             ["gald_selected"] = "已选择",
             ["gald_locked"] = "锁定",
