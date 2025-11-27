@@ -85,5 +85,5 @@ position = 'at'
 match_indent = true
 payload = '''
 Galdur.prepare_run_setup()
-G.FUNCS.start_run(nil, Galdur.run_setup.choices)
+G:start_run(Galdur.run_setup.choices)
 '''
