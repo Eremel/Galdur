@@ -68,7 +68,7 @@ function Card:hover()
         local tooltips = {}
         if self.config.center.unlocked then
             for _, center in pairs(info_queue) do
-                local desc = generate_card_ui(center, {main = {},info = {},type = {},name = 'done',badges = badges or {}}, nil, center.set, nil)
+                local desc = generate_card_ui(center, {main = {},info = {},type = {},name = 'done',badges = badges or {},from_detailed_tooltip = true}, nil, center.set, nil)
                 tooltips[#tooltips + 1] =
                 {n=info_col, config={align = self.params.deck_preview and 'tr' or self.params.deck_select > 6 and 'bm' or "tm"}, nodes={
                     {n=G.UIT.R, config={align = "cm", colour = lighten(G.C.JOKER_GREY, 0.5), r = 0.1, padding = 0.05, emboss = 0.05}, nodes={
@@ -115,7 +115,7 @@ function Card:hover()
         local info_queue = populate_info_queue('Stake', G.P_CENTER_POOLS.Stake[self.params.stake].key)
         local tooltips = {}
         for _, center in pairs(info_queue) do
-            local desc = generate_card_ui(center, {main = {},info = {},type = {},name = 'done'}, nil, center.set, nil)
+            local desc = generate_card_ui(center, {main = {},info = {},type = {},name = 'done',from_detailed_tooltip = true}, nil, center.set, nil)
             tooltips[#tooltips + 1] =
             {n=G.UIT.C, config={align = "bm"}, nodes={
                 {n=G.UIT.R, config={align = "cm", colour = lighten(G.C.JOKER_GREY, 0.5), r = 0.1, padding = 0.05, emboss = 0.05}, nodes={
