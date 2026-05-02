@@ -741,13 +741,17 @@ function deck_select_page_deck()
     Galdur.include_deck_preview(true)
 
     local deck_preview = Galdur.display_deck_preview()
+    Galdur.random_deck_text = {n=G.UIT.T, config={text = localize('gald_random_deck'), scale = 0.4, colour = G.C.WHITE}}
     deck_preview.nodes[#deck_preview.nodes+1] = {n = G.UIT.R, config={align = 'cm', padding = 0.15}, nodes = {
         {n=G.UIT.C, config = {maxw = 2.5, minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'random_deck', colour = Galdur.badge_colour, align = "cm", emboss = 0.1}, nodes = {
-            {n=G.UIT.R, config = {align = 'cm'}, nodes = {{n=G.UIT.T, config={text = localize('gald_random_deck'), scale = 0.4, colour = G.C.WHITE}}}},
+            {n=G.UIT.R, config = {align = 'cm'}, nodes = {Galdur.random_deck_text}},
             {n=G.UIT.R, config = {align = 'cm'}, nodes = {{n=G.UIT.C, config={func = 'set_button_pip', focus_args = { button = 'triggerright', set_button_pip = true, offset = {x=-0.2, y = 0.3} }}}}}            
         }}
     }}
 
+    if Galdur.random_deck_text then
+        Galdur.random_deck_text.config.text = localize('gald_random_deck')
+    end
 
     return 
         {n=G.UIT.ROOT, config={align = "tm", minh = 3.8, colour = G.C.CLEAR, padding=0.1}, nodes={
@@ -757,7 +761,6 @@ function deck_select_page_deck()
             }},
             deck_preview
         }}
-    
 end
 
 function deck_select_page_stake()
@@ -772,12 +775,17 @@ function deck_select_page_stake()
     Galdur.include_deck_preview()
 
     local deck_preview = Galdur.display_deck_preview()
+    Galdur.random_stake_text = {n=G.UIT.T, config={text = localize('gald_random_stake'), scale = 0.4, colour = G.C.WHITE}}
     deck_preview.nodes[#deck_preview.nodes+1] = {n = G.UIT.R, config={align = 'cm', padding = 0.15}, nodes = {
         {n=G.UIT.C, config = {maxw = 2.5, minw = 2.5, minh = 0.8, r = 0.1, hover = true, ref_value = 1, button = 'random_stake', colour = Galdur.badge_colour, align = "cm", emboss = 0.1}, nodes = {
-            {n=G.UIT.R, config = {align = 'cm'}, nodes = {{n=G.UIT.T, config={text = localize('gald_random_stake'), scale = 0.4, colour = G.C.WHITE}}}},
+            {n=G.UIT.R, config = {align = 'cm'}, nodes = {Galdur.random_stake_text}},
             {n=G.UIT.R, config = {align = 'cm'}, nodes = {{n=G.UIT.C, config={func = 'set_button_pip', focus_args = { button = 'triggerright', set_button_pip = true, offset = {x=-0.2, y = 0.3} }}}}}            
         }}
     }}
+
+    if Galdur.random_stake_text then
+        Galdur.random_stake_text.config.text = localize('gald_random_stake')
+    end
 
     return 
     {n=G.UIT.ROOT, config={align = "tm", minh = 3.8, colour = G.C.CLEAR, padding=0.1}, nodes={
